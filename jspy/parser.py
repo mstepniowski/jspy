@@ -55,6 +55,49 @@ class Parser(object):
 
     # Resolve "dangling else" shift/reduce conflict according to [ECMA-262 12.5]
     precedence = (('right', 'ELSE'),)
+
+    #
+    # [ECMA-262 14] Program
+    #
+    def p_program(self, p):
+        """program : statement_list_opt"""
+
+    def p_statement_list(self, p):
+        """statement_list : statement
+                          | statement_list statement"""
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[2]]
+
+    def p_statement_list_opt(self, p):
+        """statement_list_opt : statement_list"""
+        p[0] = p[1]
+
+    def p_statement_list_opt_empty(self, p):
+        """statement_list_opt : empty"""
+        p[0] = []
+
+    #
+    # [ECMA-262 13] Function Definition
+    #
+    # TODO: Other ways of defining/declaring functions
+    def p_function_expression(self, p):
+        """function_expression : FUNCTION LPAREN formal_parameter_list_opt RPAREN LBRACE statement_list_opt RBRACE"""
+        p[0] = ast.FunctionDefinition(parameter_list=p[3], body=p[6])
+    
+    def p_formal_parameter_list(self, p):
+        """formal_parameter_list : identifier
+                                 | formal_parameter_list COMMA identifier"""
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[3]]
+
+    def p_formal_parameter_list_opt(self, p):
+        """formal_parameter_list_opt : formal_parameter_list
+                                     | empty"""
+        p[0] = p[1]
     
     #
     # [ECMA-262 12] Statements
@@ -75,20 +118,8 @@ class Parser(object):
     # [ECMA-262 12.1] Block
     #
     def p_block(self, p):
-        """block : LBRACE RBRACE
-                 | LBRACE statement_list RBRACE"""
-        if len(p) == 2:
-            p[0] = ast.Block(statements=[])
-        else:
-            p[0] = ast.Block(statements=p[2])
-
-    def p_statement_list(self, p):
-        """statement_list : statement
-                          | statement_list statement"""
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[2]]
+        """block : LBRACE statement_list_opt RBRACE"""
+        p[0] = ast.Block(statements=p[2])
     
     #
     # [ECMA-262 12.2] Variable Statement
@@ -195,7 +226,7 @@ class Parser(object):
     def p_return_statement(self, p):
         """return_statement : RETURN expression_opt"""
         p[0] = ast.ReturnStatement(expression=p[2])
-    
+        
     #
     # [ECMA-262 11.1] Primary Expressions
     #
@@ -267,9 +298,9 @@ class Parser(object):
     #
     def p_member_expression(self, p):
         """member_expression : primary_expression
+                             | function_expression
                              | property_access_expression
                              | constructor_expression"""
-        # TODO: function_expression
         p[0] = p[1]
         
     def p_property_access_expression(self, p):

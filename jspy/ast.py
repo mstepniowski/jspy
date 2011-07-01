@@ -369,3 +369,11 @@ class ReturnStatement(Node):
             return js.Completion(js.RETURN,
                                  js.get_value(self.expression.eval(context)),
                                  js.EMPTY)
+
+
+class FunctionDefinition(Node):
+    children = ['parameter_list', 'body']
+
+    def eval(self, context):
+        pass
+
