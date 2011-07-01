@@ -26,16 +26,36 @@ class TestParseExpression(unittest2.TestCase):
                                      expression=ast.UnaryOp(op='-',
                                                             expression=ast.Literal(value=1))))
 
+    def test_prefix_op(self):
+        parser = Parser(start='expression')
+        self.assertEqual(parser.parse('++x'),
+                         ast.UnaryOp(op='++',
+                                     expression=ast.Identifier(name='x')))
+
+    def test_compound_assignment(self):
+        parser = Parser(start='expression')
+        self.assertEqual(parser.parse('x /= 5 - 2'),
+                         ast.Assignment(op='/=',
+                                        reference=ast.Identifier(name='x'),
+                                        expression=ast.BinaryOp(op='-',
+                                                                left_expression=ast.Literal(value=5),
+                                                                right_expression=ast.Literal(value=2))))
+
 
 class TestEvalExpression(unittest2.TestCase):
     def eval_expression(self, expression, context=None):
         if context is None:
-            context = {}
+            context = ast.ExecutionContext({})
+        if not isinstance(context, ast.ExecutionContext):
+            context = ast.ExecutionContext(context)
         expression_ast = Parser(start='expression').parse(expression)
-        return expression_ast.eval(context)
+        return ast.get_value(expression_ast.eval(context))
     
     def test_binary_op(self):
         self.assertEqual(self.eval_expression('1 + 2 * 7'), 15)
+
+    def test_binary_op_reference(self):
+        self.assertEqual(self.eval_expression('x + y * 3', {'x': 3, 'y': 2}), 9)
 
     def test_unary_op(self):
         self.assertEqual(self.eval_expression('+-1'), -1)
@@ -44,4 +64,29 @@ class TestEvalExpression(unittest2.TestCase):
         self.assertEqual(self.eval_expression('(1 + 2) * 7'), 21)
 
     def test_reference(self):
-        self.assertEqual(self.eval_expression('x + 1', {'x': 5}), 6)
+        self.assertEqual(self.eval_expression('x', {'x': 5}), 5)
+
+    def test_condition_op(self):
+        self.assertEqual(self.eval_expression('"ham" === "spam" ? "SPAMSPAMSPAM" : "no spam"'), 'no spam')
+
+    def test_prefix_op(self):
+        context = ast.ExecutionContext({'x': 3})
+        self.assertEqual(self.eval_expression('++x', context), 4)
+        self.assertEqual(context['x'], 4)
+        self.assertEqual(self.eval_expression('--x', context), 3)
+        self.assertEqual(context['x'], 3)
+
+    def test_postfix_op(self):
+        context = ast.ExecutionContext({'x': 3})
+        self.assertEqual(self.eval_expression('x++', context), 3)
+        self.assertEqual(context['x'], 4)
+        self.assertEqual(self.eval_expression('x--', context), 4)
+        self.assertEqual(context['x'], 3)
+        
+    def test_assignment(self):
+        self.assertEqual(self.eval_expression('x = 7, x', {'x': 5}), 7)
+
+    def test_compound_assignment(self):
+        context = ast.ExecutionContext({'x': 15})        
+        self.assertEqual(self.eval_expression('x /= 5 - 2', context), 5)
+        self.assertEqual(context['x'], 5)

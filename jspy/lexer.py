@@ -61,6 +61,10 @@ class Lexer(object):
     t_TRUE    = r'true'
     t_FALSE   = r'false'
     t_NULL    = r'null'
+
+    # Increment/decrement
+    t_PLUSPLUS          = r'\+\+'
+    t_MINUSMINUS        = r'\-\-'
     
     # Operators
     t_PLUS              = r'\+'

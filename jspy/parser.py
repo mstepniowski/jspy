@@ -155,7 +155,7 @@ class Parser(object):
         if len(p) == 2:
             p[0] = p[1]
         else:
-            p[0] = ast.UnaryOp(op=p[2], expression=p[1])
+            p[0] = ast.UnaryOp(op='postfix' + p[2], expression=p[1])
         
     #
     # [ECMA-262 11.4] Unary Operators
@@ -307,7 +307,7 @@ class Parser(object):
 
     def p_bitwise_or_expression(self, p):
         """bitwise_or_expression : bitwise_xor_expression
-                                 | bitwise_or_expression XOR bitwise_xor_expression"""
+                                 | bitwise_or_expression OR bitwise_xor_expression"""
         if len(p) == 2:
             p[0] = p[1]
         else:
@@ -315,7 +315,7 @@ class Parser(object):
 
     def p_bitwise_or_expression_no_in(self, p):
         """bitwise_or_expression_no_in : bitwise_xor_expression_no_in
-                                       | bitwise_or_expression_no_in XOR bitwise_xor_expression_no_in"""
+                                       | bitwise_or_expression_no_in OR bitwise_xor_expression_no_in"""
         if len(p) == 2:
             p[0] = p[1]
         else:
