@@ -32,7 +32,7 @@ class Parser(object):
     # ! reduce/reduce conflict for MINUS resolved using rule 5 (block -> LBRACE RBRACE .)
     # ! reduce/reduce conflict for SEMICOLON resolved using rule 5 (block -> LBRACE RBRACE .)
     #
-    def __init__(self, lexer=None, start='expression',
+    def __init__(self, lexer=None, start='program',
                  tabmodule=None,
                  outputdir=None,
                  debug=False):
