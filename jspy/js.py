@@ -43,7 +43,8 @@ class Function(object):
         """Internal [[Call]] method of Function object.
 
         See [ECMA-262 13.2.1] for a basic algorithm."""
-        function_context = ExecutionContext(args, parent=self.scope)
+        function_context = ExecutionContext(self.prepare_arg_dict(args),
+                                            parent=self.scope)
         result = self.body.eval(function_context)
         if result.type is RETURN:
             return result.value
@@ -51,19 +52,42 @@ class Function(object):
             # No return statement in function
             return UNDEFINED
 
+    def prepare_arg_dict(self, args):
+        result = {'arguments': args}
+        for name in self.parameters:
+            result[name] = UNDEFINED
+        for name, value in zip(self.parameters, args):
+            result[name] = value
+        return result
+    
+    def __repr__(self):
+        return 'Function(parameters=%r, body=%r, scope=%r)' % (self.parameters,
+                                                               self.body,
+                                                               self.scope)
+
 
 class ReferenceError(RuntimeError):
     pass
 
 
-class ExecutionContext(dict):
+class ExecutionContext(object):
     def __init__(self, env, parent=None):
-        super(ExecutionContext, self).__init__(env)
+        assert isinstance(env, dict)
+        self.env = env
         self.parent = parent
+
+    def __getitem__(self, name):
+        return self.env[name]
+
+    def __setitem__(self, name, value):
+        self.env[name] = value
     
     def get_binding_value(self, name):
-        return self[name]
-
+        try:
+            return self.env[name]
+        except KeyError:
+            raise ReferenceError('Reference %r not found in %r' % (name, self))
+    
     def set_mutable_binding(self, name, value):
         # TODO: Reenable this after adding support for nested contexts
         # if name not in self:
@@ -72,6 +96,9 @@ class ExecutionContext(dict):
 
     def get_this_reference(self):
         return self['this']
+
+    def __repr__(self):
+        return 'ExecutionContext(%r, parent=%r)' % (self.env, self.parent)
 
 
 class Reference(object):

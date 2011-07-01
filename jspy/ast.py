@@ -374,7 +374,12 @@ class FunctionDefinition(Node):
     children = ['parameters', 'body']
 
     def eval(self, context):
-        return js.Function(parameters=self.parameters,
+        return js.Function(parameters=self.get_parameter_names(context),
                            body=self.body,
                            scope=context)
 
+    def get_parameter_names(self, context):
+        if self.parameters is None:
+            return []
+        else:
+            return [p.eval(context).name for p in self.parameters]

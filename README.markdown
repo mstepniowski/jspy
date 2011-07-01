@@ -28,7 +28,6 @@ Still todo
 
   * `delete`, `void`, `typeof`, `instanceof` and `in` operators
   * `for` loop, `with`, `switch`, labels, exception handling and `debugger`)
-  * Function expressions
   * Nested contexts
   * Objects
   * Prototypal inheritance
