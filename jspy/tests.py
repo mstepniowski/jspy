@@ -236,3 +236,8 @@ class TestEvalFunction(unittest2.TestCase):
                      sqr(7);"""
         self.assertEqual(self.eval(program), js.Completion(js.NORMAL, 49, js.EMPTY))
     
+    def test_function_as_argument(self):
+        program = """var double = function (f, x) { return f(f(x)); };
+                     double(function (x) { return x * x; }, 2);"""
+        self.assertEqual(self.eval(program), js.Completion(js.NORMAL, 16, js.EMPTY))
+        

@@ -335,7 +335,7 @@ class Parser(object):
         if len(p) == 2:
             p[0] = [p[1]]
         else:
-            p[0] = p[1] + p[3]
+            p[0] = p[1] + [p[3]]
     
     def p_left_hand_side_expression(self, p):
         """left_hand_side_expression : new_expression
