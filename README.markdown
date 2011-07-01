@@ -53,5 +53,5 @@ Still todo
   * `for` loop, `with`, `switch`, labels, exception handling and `debugger`)
   * Objects
   * Prototypal inheritance
-  * *String mode*
+  * *Strict mode*
 
