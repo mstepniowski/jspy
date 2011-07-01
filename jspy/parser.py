@@ -112,7 +112,8 @@ class Parser(object):
                      | iteration_statement
                      | continue_statement
                      | break_statement
-                     | return_statement"""
+                     | return_statement
+                     | debugger_statement"""
         p[0] = p[1]
 
     #
@@ -209,9 +210,16 @@ class Parser(object):
     # [ECMA-262 12.9] The return Statement
     #
     def p_return_statement(self, p):
-        """return_statement : RETURN expression_opt"""
+        """return_statement : RETURN expression_opt SEMICOLON"""
         p[0] = ast.ReturnStatement(expression=p[2])
-        
+
+    #
+    # [ECMA-262 12.15] The debugger statement
+    #
+    def p_debugger_statement(self, p):
+        """debugger_statement : DEBUGGER SEMICOLON"""
+        p[0] = ast.DebuggerStatement()
+    
     #
     # [ECMA-262 11.1] Primary Expressions
     #

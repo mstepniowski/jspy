@@ -413,6 +413,14 @@ class ReturnStatement(Node):
                                  js.EMPTY)
 
 
+class DebuggerStatement(Node):
+    def eval(self, context):
+        return js.EMPTY_COMPLETION
+
+
+#
+# Function definitions
+#
 class FunctionDefinition(Node):
     children = ['parameters', 'body']
 

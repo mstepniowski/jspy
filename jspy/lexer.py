@@ -15,9 +15,8 @@ class Lexer(object):
     keywords = (
         'BREAK', 'DO', 'INSTANCEOF', 'TYPEOF', 'ELSE',
         'NEW', 'VAR', 'RETURN', 'VOID', 'CONTINUE', 'WHILE',
-        'FUNCTION', 'THIS', 'IF', 'DELETE', 'IN')
-    # + ('WITH', 'TRY', 'CATCH', 'FINALLY', 'THROW', 'CASE', 'SWITCH',
-    #    'DEBUGGER', 'FOR', 'DEFAULT')
+        'FUNCTION', 'THIS', 'IF', 'DELETE', 'IN', 'DEBUGGER')
+    # + ('WITH', 'TRY', 'CATCH', 'FINALLY', 'THROW', 'CASE', 'SWITCH', 'FOR', 'DEFAULT')
     keyword_map = {}
     for r in keywords:
         keyword_map[r.lower()] = r

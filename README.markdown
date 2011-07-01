@@ -20,6 +20,7 @@ You may need to have root rights, depending on your system configuration. After 
     $ jspy file.js
 </pre>
 
+
 Test suite
 ----------
 
@@ -43,15 +44,20 @@ Implemented features
 --------------------
 
   * Expressions (excluding `delete`, `typeof`, `instanceof` and `in` operators)
-  * Statements (excluding `for` loop, `with`, `switch`, labels, exception handling and `debugger`)
+  * Statements (excluding `for` and `for in` loops, `with`, `switch`, labels and exception handling)
   * Functions (with nested execution scopes allowing for closures)
 
-Still todo
-----------
+ 
+Todo (in order of priorities)
+-----------------------------
 
-  * `delete`, `void`, `typeof`, `instanceof` and `in` operators
-  * `for` loop, `with`, `switch`, labels, exception handling and `debugger`)
-  * Objects
+  * `for` and `for in` loops
+  * `switch` statement
+  * Objects (including an implementation of `Array`)
+  * `delete`, `typeof`, `instanceof` and `in` operators
   * Prototypal inheritance
-  * *Strict mode*
+  * Exception handling
+  * Strict mode (should we run in strict mode by default?)
+  * Labels for `break` and `continue` statements
+  * `with` statement (it's evil!)
 
