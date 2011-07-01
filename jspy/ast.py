@@ -1,4 +1,3 @@
-import sys
 from jspy import js
 
 
@@ -38,46 +37,22 @@ class Node(object):
         for name in self.children:
             setattr(self, name, kwargs.pop(name))
         assert len(kwargs) == 0
-    
-    def show(self, buf=sys.stdout, offset=0, attrnames=False, showcoord=False):
-        """ Pretty print the Node and all its attributes and
-            children (recursively) to a buffer.
-            
-            file:   
-                Open IO buffer into which the Node is printed.
-            
-            offset: 
-                Initial offset (amount of leading spaces) 
-            
-            attrnames:
-                True if you want to see the attribute names in
-                name=value pairs. False to only see the values.
-            
-            showcoord:
-                Do you want the coordinates of each Node to be
-                displayed.
-        """
-        lead = ' ' * offset
-        buf.write(lead + self.__class__.__name__+': ')
-
-        if self.attr_names:
-            if attrnames:
-                nvlist = [(n, getattr(self,n)) for n in self.attr_names]
-                attrstr = ', '.join('%s=%s' % nv for nv in nvlist)
-            else:
-                vlist = [getattr(self, n) for n in self.attr_names]
-                attrstr = ', '.join('%s' % v for v in vlist)
-            buf.write(attrstr)
-
-        if showcoord:
-            buf.write(' (at %s)' % self.coord)
-        buf.write('\n')
-
-        for c in self.children():
-            c.show(buf, offset + 2, attrnames, showcoord)
 
     def __eq__(self, other):
-        return self.arguments == other.arguments and self.children == other.children
+        if self.__class__ is not other.__class__:
+            return False
+        return (self.arguments == other.arguments and self.children == other.children
+                and all(getattr(self, name) == getattr(other, name) for name in self.arguments)
+                and all(getattr(self, name) == getattr(other, name) for name in self.children))
+
+    def __repr__(self):
+        kwargs = {}
+        for name in self.arguments:
+            kwargs[name] = getattr(self, name)
+        for name in self.children:
+            kwargs[name] = getattr(self, name)
+        kwargs_repr = ', '.join('%s=%r' % (name, value) for name, value in kwargs.items())
+        return '%s(%s)' % (self.__class__.__name__, kwargs_repr)
 
 
 class This(Node):
