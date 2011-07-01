@@ -10,14 +10,14 @@ class Lexer(object):
 
     def token(self):
         return self.lexer.token()
-    
+
     # Reserved keywords
     keywords = (
-        'BREAK', 'DO', 'INSTANCEOF', 'TYPEOF',
-        'CASE', 'ELSE', 'NEW', 'VAR', 'CATCH', 'FINALLY', 'RETURN', 'VOID',
-        'CONTINUE', 'FOR', 'SWITCH', 'WHILE', 'DEBUGGER', 'FUNCTION', 'THIS',
-        'WITH', 'DEFAULT', 'IF', 'THROW', 'DELETE', 'IN', 'TRY')
-
+        'BREAK', 'DO', 'INSTANCEOF', 'TYPEOF', 'ELSE',
+        'NEW', 'VAR', 'RETURN', 'VOID', 'CONTINUE', 'WHILE',
+        'FUNCTION', 'THIS', 'IF', 'DELETE', 'IN')
+    # + ('WITH', 'TRY', 'CATCH', 'FINALLY', 'THROW', 'CASE', 'SWITCH',
+    #    'DEBUGGER', 'FOR', 'DEFAULT')
     keyword_map = {}
     for r in keywords:
         keyword_map[r.lower()] = r
@@ -117,13 +117,13 @@ class Lexer(object):
     def t_COMMENT(self, t):
         r'/\*(.|\n)*?\*/'
         t.lexer.lineno += t.value.count('\n')
-        return t
+        pass
 
     # Comment (C++-Style)
     def t_CPPCOMMENT(self, t):
         r'//.*\n'
         t.lexer.lineno += 1
-        return t
+        pass
 
     # Literals
     def t_TRUE(self, t):
