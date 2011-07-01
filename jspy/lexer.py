@@ -57,11 +57,6 @@ class Lexer(object):
         'SEMICOLON', 'COLON'    # ; :
     )
 
-    # Literals
-    t_TRUE    = r'true'
-    t_FALSE   = r'false'
-    t_NULL    = r'null'
-
     # Increment/decrement
     t_PLUSPLUS          = r'\+\+'
     t_MINUSMINUS        = r'\-\-'
@@ -128,6 +123,22 @@ class Lexer(object):
     def t_CPPCOMMENT(self, t):
         r'//.*\n'
         t.lexer.lineno += 1
+        return t
+
+    # Literals
+    def t_TRUE(self, t):
+        r'true'
+        t.value = True
+        return t
+    
+    def t_FALSE(self, t):
+        r'false'
+        t.value = False
+        return t
+
+    def t_NULL(self, t):
+        r'null'
+        t.value = None
         return t
 
     # Identifiers and keywords
