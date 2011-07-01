@@ -141,7 +141,7 @@ class TestEvalStatement(unittest2.TestCase):
     def test_nested_blocks(self):
         self.assertEqual(self.eval('{ 1; {3; 2;}}'), js.Completion(js.NORMAL, 2, js.EMPTY))
 
-    def test_block_with_empty(self):
+    def test_block_with_empty_statements(self):
         self.assertEqual(self.eval('{7;;}'), js.Completion(js.NORMAL, 7, js.EMPTY))
 
     def test_variable_declaration_list(self):
@@ -150,4 +150,21 @@ class TestEvalStatement(unittest2.TestCase):
         self.assertEqual(context['x'], 7)
         self.assertEqual(context['y'], 5)
 
+    def test_if_statement(self):
+        self.assertEqual(self.eval('if (2 + 2 == 4) 3;'), js.Completion(js.NORMAL, 3, js.EMPTY))
+        self.assertEqual(self.eval('if (false) 3;'), js.EMPTY_COMPLETION)
+
+    def test_if_else_statement(self):
+        self.assertEqual(self.eval('if (false) 3; else 5;'), js.Completion(js.NORMAL, 5, js.EMPTY))
+        
+    def test_dangling_else(self):
+        stmt = """if (false)
+                       if (true) 3;
+                       else 5;"""
+        self.assertEqual(self.eval(stmt), js.EMPTY_COMPLETION)
+
+        stmt = """if (true)
+                      if (true) 3;
+                      else 5;"""
+        self.assertEqual(self.eval(stmt), js.Completion(js.NORMAL, 3, js.EMPTY))
         

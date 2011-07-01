@@ -53,6 +53,9 @@ class Parser(object):
     def parse(self, text):
         return self.parser.parse(text, lexer=self.lexer)
 
+    # Resolve "dangling else" shift/reduce conflict according to [ECMA-262 12.5]
+    precedence = (('right', 'ELSE'),)
+    
     #
     # [ECMA-262 12] Statements
     #
@@ -60,7 +63,8 @@ class Parser(object):
         """statement : block
                      | variable_statement
                      | empty_statement
-                     | expression_statement"""
+                     | expression_statement
+                     | if_statement"""
         p[0] = p[1]
 
     #
@@ -121,7 +125,6 @@ class Parser(object):
         else:
             p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=p[3])
 
-        
     #
     # [ECMA-262 12.3] Empty Statement
     #
@@ -132,10 +135,24 @@ class Parser(object):
     #
     # [ECMA-262 12.4] Expression Statement
     #
-    # TODO: lookahead {, function
     def p_expression_statement(self, p):
         """expression_statement : expression SEMICOLON"""
         p[0] = ast.ExpressionStatement(expression=p[1])
+
+    #
+    # [ECMA-262 12.5] if Statement
+    #
+    def p_if_statement(self, p):
+        """if_statement : IF LPAREN expression RPAREN statement ELSE statement
+                        | IF LPAREN expression RPAREN statement"""
+        if len(p) == 8:
+            p[0] = ast.IfStatement(condition=p[3],
+                                   true_statement=p[5],
+                                   false_statement=p[7])
+        else:
+            p[0] = ast.IfStatement(condition=p[3],
+                                   true_statement=p[5],
+                                   false_statement=ast.EmptyStatement())
     
     #
     # [ECMA-262 11.1] Primary Expressions

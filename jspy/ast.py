@@ -299,3 +299,14 @@ class ExpressionStatement(Node):
         return js.Completion(js.NORMAL,
                              js.get_value(self.expression.eval(context)),
                              js.EMPTY)
+
+
+class IfStatement(Node):
+    children = ['condition', 'true_statement', 'false_statement']
+
+    def eval(self, context):
+        condition_value = js.get_value(self.condition.eval(context))
+        if condition_value:
+            return self.true_statement.eval(context)
+        else:
+            return self.false_statement.eval(context)
