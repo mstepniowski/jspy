@@ -5,6 +5,33 @@ from jspy import ast
 
 
 class Parser(object):
+    #
+    # Note
+    # ----
+    #
+    # Rule [ECMA-262 12.4] handled by `p_expression_statement` def:
+    #
+    #     expression_statement : [lookahead not in {LBRACE, FUNCTION}] expression SEMICOLON
+    #
+    # is not possible to implement directly in LR(1) parser and disallowing this
+    # construct in LR(1) grammar would require duplicating a huge part of the rules.
+    #
+    # I've decided to live with PLY heuristic for reduce/reduce conflict instead
+    # (choosing the first rule in grammar), which happens to be correct:
+    #
+    # state 74
+    #
+    #   (5) block -> LBRACE RBRACE .
+    #   (36) object_literal -> LBRACE RBRACE .
+    #
+    # ! reduce/reduce conflict for LBRACE resolved using rule 5 (block -> LBRACE RBRACE .)
+    # ! reduce/reduce conflict for LPAREN resolved using rule 5 (block -> LBRACE RBRACE .)
+    # ! reduce/reduce conflict for PLUSPLUS resolved using rule 5 (block -> LBRACE RBRACE .)
+    # ! reduce/reduce conflict for MINUSMINUS resolved using rule 5 (block -> LBRACE RBRACE .)
+    # ! reduce/reduce conflict for PLUS resolved using rule 5 (block -> LBRACE RBRACE .)
+    # ! reduce/reduce conflict for MINUS resolved using rule 5 (block -> LBRACE RBRACE .)
+    # ! reduce/reduce conflict for SEMICOLON resolved using rule 5 (block -> LBRACE RBRACE .)
+    #
     def __init__(self, lexer=None, start='expression',
                  tabmodule=None,
                  outputdir=None,
@@ -27,6 +54,90 @@ class Parser(object):
         return self.parser.parse(text, lexer=self.lexer)
 
     #
+    # [ECMA-262 12] Statements
+    #
+    def p_statement(self, p):
+        """statement : block
+                     | variable_statement
+                     | empty_statement
+                     | expression_statement"""
+        p[0] = p[1]
+
+    #
+    # [ECMA-262 12.1] Block
+    #
+    def p_block(self, p):
+        """block : LBRACE RBRACE
+                 | LBRACE statement_list RBRACE"""
+        if len(p) == 2:
+            p[0] = ast.Block(statements=[])
+        else:
+            p[0] = ast.Block(statements=p[2])
+
+    def p_statement_list(self, p):
+        """statement_list : statement
+                          | statement_list statement"""
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[2]]
+    
+    #
+    # [ECMA-262 12.2] Variable Statement
+    #
+    def p_variable_statement(self, p):
+        """variable_statement : VAR variable_declaration_list SEMICOLON"""
+        p[0] = ast.VariableDeclarationList(declarations=p[2])
+    
+    def p_variable_declaration_list(self, p):
+        """variable_declaration_list : variable_declaration
+                                     | variable_declaration_list COMMA variable_declaration"""
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[3]]
+
+    def p_variable_declaration_list_no_in(self, p):
+        """variable_declaration_list_no_in : variable_declaration_no_in
+                                           | variable_declaration_list_no_in COMMA variable_declaration_no_in"""
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[3]]
+
+    def p_variable_declaration(self, p):
+        """variable_declaration : identifier
+                                | identifier EQUALS assignment_expression"""
+        if len(p) == 2:
+            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=None)
+        else:
+            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=p[3])
+
+    def p_variable_declaration_no_in(self, p):
+        """variable_declaration_no_in : identifier
+                                      | identifier EQUALS assignment_expression_no_in"""
+        if len(p) == 2:
+            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=None)
+        else:
+            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=p[3])
+
+        
+    #
+    # [ECMA-262 12.3] Empty Statement
+    #
+    def p_empty_statement(self, p):
+        """empty_statement : SEMICOLON"""
+        p[0] = ast.EmptyStatement()
+
+    #
+    # [ECMA-262 12.4] Expression Statement
+    #
+    # TODO: lookahead {, function
+    def p_expression_statement(self, p):
+        """expression_statement : expression SEMICOLON"""
+        p[0] = ast.ExpressionStatement(expression=p[1])
+    
+    #
     # [ECMA-262 11.1] Primary Expressions
     #
     def p_primary_expression(self, p):
@@ -34,6 +145,7 @@ class Parser(object):
                               | identifier
                               | literal
                               | array_literal
+                              | object_literal
                               | LPAREN expression RPAREN"""
         if len(p) == 2:
             p[0] = p[1]
@@ -436,90 +548,6 @@ class Parser(object):
             p[0] = p[1]
         else:
             p[0] = ast.MultiExpression(left_expression=p[1], right_expression=p[3])
-
-    #
-    # [ECMA-262 12] Statements
-    #
-    def p_statement(self, p):
-        """statement : block
-                     | variable_statement
-                     | empty_statement
-                     | expression_statement"""
-        p[0] = p[1]
-
-    #
-    # [ECMA-262 12.1] Block
-    #
-    def p_block(self, p):
-        """block : LBRACE RBRACE
-                 | LBRACE statement_list RBRACE"""
-        if len(p) == 2:
-            p[0] = ast.Block(statements=[])
-        else:
-            p[0] = ast.Block(statements=p[2])
-
-    def p_statement_list(self, p):
-        """statement_list : statement
-                          | statement_list statement"""
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[2]]
-    
-    #
-    # [ECMA-262 12.2] Variable Statement
-    #
-    def p_variable_statement(self, p):
-        """variable_statement : VAR variable_declaration_list SEMICOLON"""
-        p[0] = ast.VariableDeclarationList(declarations=p[2])
-    
-    def p_variable_declaration_list(self, p):
-        """variable_declaration_list : variable_declaration
-                                     | variable_declaration_list COMMA variable_declaration"""
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[3]]
-
-    def p_variable_declaration_list_no_in(self, p):
-        """variable_declaration_list_no_in : variable_declaration_no_in
-                                           | variable_declaration_list_no_in COMMA variable_declaration_no_in"""
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[3]]
-
-    def p_variable_declaration(self, p):
-        """variable_declaration : identifier
-                                | identifier EQUALS assignment_expression"""
-        if len(p) == 2:
-            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=None)
-        else:
-            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=p[3])
-
-    def p_variable_declaration_no_in(self, p):
-        """variable_declaration_no_in : identifier
-                                      | identifier EQUALS assignment_expression_no_in"""
-        if len(p) == 2:
-            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=None)
-        else:
-            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=p[3])
-
-        
-    #
-    # [ECMA-262 12.3] Empty Statement
-    #
-    def p_empty_statement(self, p):
-        """empty_statement : SEMICOLON"""
-        p[0] = ast.EmptyStatement()
-
-    #
-    # [ECMA-262 12.4] Expression Statement
-    #
-    # TODO: lookahead {, function
-    def p_expression_statement(self, p):
-        """expression_statement : expression SEMICOLON"""
-        p[0] = ast.ExpressionStatement(expression=p[1])
     
     # Error handling
     def p_error(self, p):

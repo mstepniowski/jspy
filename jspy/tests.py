@@ -4,12 +4,14 @@ from jspy import ast, js
 
 
 class TestParseExpression(unittest2.TestCase):
-    # def test_primary(self):
-    #     parser = Parser(start='expression')
-    #     self.assertEqual(parser.parse('{7: [9, 10, "ala ma kota"], "ala ma kota": {3: 4}}'),
-    #                      ast.ObjectLiteral(items={7: ast.ArrayLiteral(items=[
-    #                         ast.Literal(value=9), ast.Literal(value=10), ast.Literal(value='ala ma kota')]),
-    #                                               'ala ma kota': ast.ObjectLiteral(items={3: 4})}))
+    def test_primary(self):
+        parser = Parser(start='expression')
+        self.assertEqual(parser.parse('{7: [9, 10, "ala ma kota"], "ala ma kota": {3: 4}}'),
+                         ast.ObjectLiteral(
+                items={7: ast.ArrayLiteral(items=[ast.Literal(value=9),
+                                                  ast.Literal(value=10),
+                                                  ast.Literal(value='ala ma kota')]),
+                       'ala ma kota': ast.ObjectLiteral(items={3: ast.Literal(value=4)})}))
 
     def test_binary_op(self):
         parser = Parser(start='expression')
