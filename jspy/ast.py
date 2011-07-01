@@ -347,3 +347,25 @@ class DoWhileStatement(Node):
             iterating = js.get_value(self.condition.eval(context))
         
         return js.Completion(js.NORMAL, result_value, js.EMPTY)
+
+
+class ContinueStatement(Node):
+    def eval(self, context):
+        return js.Completion(js.CONTINUE, js.EMPTY, js.EMPTY)
+
+
+class BreakStatement(Node):
+    def eval(self, context):
+        return js.Completion(js.BREAK, js.EMPTY, js.EMPTY)
+
+
+class ReturnStatement(Node):
+    children = ['expression']
+    
+    def eval(self, context):
+        if self.expression is None:
+            return js.Completion(js.RETURN, js.UNDEFINED, js.EMPTY)
+        else:
+            return js.Completion(js.RETURN,
+                                 js.get_value(self.expression.eval(context)),
+                                 js.EMPTY)

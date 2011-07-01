@@ -178,4 +178,31 @@ class TestEvalStatement(unittest2.TestCase):
         self.assertEqual(self.eval('while (x < 5) ++x;', context), js.Completion(js.NORMAL, 5, js.EMPTY))
         self.assertEqual(context['x'], 5)
 
-        
+    def test_continue_statement(self):
+        stmt = """while (x < 10) {
+                      ++x;
+                      if (x % 2 == 0)
+                          continue;
+                      ++y;
+               }"""
+        context = js.ExecutionContext({'x': 0, 'y': 0})
+        self.assertEqual(self.eval(stmt, context), js.Completion(js.NORMAL, 5, js.EMPTY))
+        self.assertEqual(context['x'], 10)
+        self.assertEqual(context['y'], 5)
+  
+    def test_break_statement(self):
+        stmt = """while (x < 10) {
+                      ++x;
+                      if (x % 3 == 0)
+                          break;
+                      ++y;
+               }"""
+        context = js.ExecutionContext({'x': 0, 'y': 0})
+        self.assertEqual(self.eval(stmt, context), js.Completion(js.NORMAL, 2, js.EMPTY))
+        self.assertEqual(context['x'], 3)
+        self.assertEqual(context['y'], 2)
+
+    @unittest2.skip('TODO when we\'ll have functions')
+    def test_return_statement(self):
+        pass
+

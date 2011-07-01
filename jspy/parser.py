@@ -65,7 +65,10 @@ class Parser(object):
                      | empty_statement
                      | expression_statement
                      | if_statement
-                     | iteration_statement"""
+                     | iteration_statement
+                     | continue_statement
+                     | break_statement
+                     | return_statement"""
         p[0] = p[1]
 
     #
@@ -172,6 +175,27 @@ class Parser(object):
         """do_while_statement : DO statement WHILE LPAREN expression RPAREN SEMICOLON"""
         p[0] = ast.DoWhileStatement(condition=p[5], statement=p[2])
 
+    #
+    # [ECMA-262 12.7] The continue Statement
+    #
+    def p_continue_statement(self, p):
+        """continue_statement : CONTINUE"""
+        p[0] = ast.ContinueStatement()
+
+    #
+    # [ECMA-262 12.8] The break Statement
+    #
+    def p_break_statement(self, p):
+        """break_statement : BREAK"""
+        p[0] = ast.BreakStatement()
+
+    #
+    # [ECMA-262 12.9] The return Statement
+    #
+    def p_return_statement(self, p):
+        """return_statement : RETURN expression_opt"""
+        p[0] = ast.ReturnStatement(expression=p[2])
+    
     #
     # [ECMA-262 11.1] Primary Expressions
     #
@@ -575,7 +599,12 @@ class Parser(object):
             p[0] = p[1]
         else:
             p[0] = ast.MultiExpression(left_expression=p[1], right_expression=p[3])
-    
+
+    def p_expression_opt(self, p):
+        """expression_opt : expression
+                          | empty"""
+        p[0] = p[1]
+
     def p_expression_no_in(self, p):
         """expression_no_in : assignment_expression_no_in
                             | expression_no_in COMMA assignment_expression_no_in"""
@@ -583,6 +612,10 @@ class Parser(object):
             p[0] = p[1]
         else:
             p[0] = ast.MultiExpression(left_expression=p[1], right_expression=p[3])
+
+    def p_empty(self, p):
+        """empty : """
+        p[0] = None
     
     # Error handling
     def p_error(self, p):
