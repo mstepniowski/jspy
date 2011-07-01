@@ -140,40 +140,41 @@ class UnaryOp(Node):
     children = ['expression']
 
     def eval(self, context):
-        expression_value = self.expression.eval(context)
+        expr = self.expression.eval(context)
+        value = js.get_value(expr)
+        
         if self.op == 'delete':
             # TODO
             return True
         elif self.op == 'void':
-            # TODO: Some object to represent undefined value
-            return 'undefined'
+            return js.UNDEFINED
         elif self.op == 'typeof':
             # TODO
             return 'object'
         elif self.op == '++':
-            new_value = js.get_value(expression_value) + 1
-            js.put_value(expression_value, new_value)
+            new_value = value + 1
+            js.put_value(expr, new_value)
             return new_value
         elif self.op == '--':
-            new_value = js.get_value(expression_value) - 1
-            js.put_value(expression_value, new_value)
+            new_value = value - 1
+            js.put_value(expr, new_value)
             return new_value
         elif self.op == 'postfix++':
-            old_value = js.get_value(expression_value)
-            js.put_value(expression_value, old_value + 1)
+            old_value = value
+            js.put_value(expr, old_value + 1)
             return old_value
         elif self.op == 'postfix--':
-            old_value = js.get_value(expression_value)
-            js.put_value(expression_value, old_value - 1)
-            return old_value            
+            old_value = value
+            js.put_value(expr, old_value - 1)
+            return old_value           
         elif self.op == '+':
-            return +js.get_value(expression_value)
+            return +value
         elif self.op == '-':
-            return -js.get_value(expression_value)
+            return -value
         elif self.op == '~':
-            return ~js.get_value(expression_value)
+            return ~value
         elif self.op == '!':
-            return not js.get_value(expression_value)
+            return not value
         else:
             raise SyntaxError('Unknown unary operand: %s' % self.op)
 

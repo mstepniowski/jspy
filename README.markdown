@@ -42,7 +42,7 @@ You can find the newest source code of *jspy* on [GitHub](https://github.com/zub
 Implemented features
 --------------------
 
-  * Expressions (excluding `delete`, `void`, `typeof`, `instanceof` and `in` operators)
+  * Expressions (excluding `delete`, `typeof`, `instanceof` and `in` operators)
   * Statements (excluding `for` loop, `with`, `switch`, labels, exception handling and `debugger`)
   * Functions (with nested execution scopes allowing for closures)
 
