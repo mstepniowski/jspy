@@ -249,7 +249,8 @@ class TestEvalFunction(unittest2.TestCase):
         self.assertEqual(self.eval(program), js.Completion(js.NORMAL, 3, js.EMPTY))
         
     def test_shadowing(self):
-        program = """var x = 1, shadow = function () {
+        program = """var x = 1;
+                     var shadow = function () {
                          var x = 3; x += 1; return x;
                      };
                      shadow();"""
@@ -257,3 +258,33 @@ class TestEvalFunction(unittest2.TestCase):
         self.assertEqual(self.eval(program, context), js.Completion(js.NORMAL, 4, js.EMPTY))
         self.assertEqual(context['x'], 1)
         
+    def test_closure(self):
+        program = """var fibgen = function () {
+                         var a = 0, b = 1;
+                         return function () {
+                             var old = a;
+                             a = b;
+                             b = b + old;
+                             return old;
+                         }
+                     };
+
+                     var fib = fibgen();
+                     var f1 = fib();
+                     var f2 = fib();
+                     fib(); fib(); fib(); fib();
+                     var f7 = fib();
+                     fib(); fib(); fib(); fib();
+
+                     var fib2 = fibgen();
+                     fib2(); fib2(); fib2(); fib2();
+                     var f5 = fib2();
+
+                     fib();"""
+        context = js.ExecutionContext({})
+        self.assertEqual(self.eval(program, context), js.Completion(js.NORMAL, 89, js.EMPTY))
+        self.assertEqual(context['f1'], 0)
+        self.assertEqual(context['f2'], 1)
+        self.assertEqual(context['f5'], 3)
+        self.assertEqual(context['f7'], 8)
+
