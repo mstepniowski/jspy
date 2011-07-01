@@ -1,6 +1,6 @@
 import unittest2
 from jspy.parser import Parser
-from jspy import ast
+from jspy import ast, js
 
 
 class TestParseExpression(unittest2.TestCase):
@@ -45,11 +45,11 @@ class TestParseExpression(unittest2.TestCase):
 class TestEvalExpression(unittest2.TestCase):
     def eval_expression(self, expression, context=None):
         if context is None:
-            context = ast.ExecutionContext({})
-        if not isinstance(context, ast.ExecutionContext):
-            context = ast.ExecutionContext(context)
+            context = js.ExecutionContext({})
+        if not isinstance(context, js.ExecutionContext):
+            context = js.ExecutionContext(context)
         expression_ast = Parser(start='expression').parse(expression)
-        return ast.get_value(expression_ast.eval(context))
+        return js.get_value(expression_ast.eval(context))
     
     def test_binary_op(self):
         self.assertEqual(self.eval_expression('1 + 2 * 7'), 15)
@@ -70,14 +70,14 @@ class TestEvalExpression(unittest2.TestCase):
         self.assertEqual(self.eval_expression('"ham" === "spam" ? "SPAMSPAMSPAM" : "no spam"'), 'no spam')
 
     def test_prefix_op(self):
-        context = ast.ExecutionContext({'x': 3})
+        context = js.ExecutionContext({'x': 3})
         self.assertEqual(self.eval_expression('++x', context), 4)
         self.assertEqual(context['x'], 4)
         self.assertEqual(self.eval_expression('--x', context), 3)
         self.assertEqual(context['x'], 3)
 
     def test_postfix_op(self):
-        context = ast.ExecutionContext({'x': 3})
+        context = js.ExecutionContext({'x': 3})
         self.assertEqual(self.eval_expression('x++', context), 3)
         self.assertEqual(context['x'], 4)
         self.assertEqual(self.eval_expression('x--', context), 4)
@@ -87,6 +87,6 @@ class TestEvalExpression(unittest2.TestCase):
         self.assertEqual(self.eval_expression('x = 7, x', {'x': 5}), 7)
 
     def test_compound_assignment(self):
-        context = ast.ExecutionContext({'x': 15})        
+        context = js.ExecutionContext({'x': 15})        
         self.assertEqual(self.eval_expression('x /= 5 - 2', context), 5)
         self.assertEqual(context['x'], 5)

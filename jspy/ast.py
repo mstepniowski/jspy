@@ -1,74 +1,5 @@
 import sys
-
-
-UNDEFINED = object()
-
-
-class ReferenceError(RuntimeError):
-    pass
-
-
-class ExecutionContext(dict):
-    def get_binding_value(self, name):
-        return self[name]
-
-    def set_mutable_binding(self, name, value):
-        if name not in self:
-            raise ReferenceError("%r is not declared")
-        self[name] = value
-
-    def get_this_reference(self):
-        return self['this']
-
-
-class JSReference(object):
-    """JavaScript reference type as defined in [ECMA-262 8.7]."""
-    def __init__(self, name, base):
-        self.name = name
-        self.base = base
-
-    def is_unresolvable(self):
-        return self.base is UNDEFINED
-
-    def has_primitive_base(self):
-        return isinstance(self.base, (basestring, float, bool))
-
-    def is_property(self):
-        return isinstance(self.base, JSObject) or self.has_primitive_base()
-
-    def __repr__(self):
-        return 'Reference(%r, %r)' % (self.name, self.base)
-
-
-def get_value(obj):
-    """Returns a value of `obj`, resolving a reference if needed.
-    
-    See [ECMA-262 8.7.1] for details."""
-    if not isinstance(obj, JSReference):
-        return obj
-    if obj.is_unresolvable():
-        raise ReferenceError("%r is unresolvable" % obj)
-    if obj.is_property():
-        raise NotImplementedError("Object references are not supported: %r" % obj)
-    else:
-        # `obj.base` must be an `ExecutionContext` at this point
-        return obj.base.get_binding_value(obj.name)
-
-
-def put_value(obj, value):
-    """Sets the value of `obj` reference to `value`.
-
-    See [ECMA-262 8.7.2] for details."""
-    if not isinstance(obj, JSReference):
-        raise ReferenceError("Can't put a value of non-reference object %r" % obj)
-    if obj.is_unresolvable():
-        raise ReferenceError("%r is unresolvable" % obj)
-    if obj.is_property():
-        # TODO
-        raise NotImplementedError("Object references are not supported: %r" % obj)
-    else:
-        # `obj.base` must be an `ExecutionContext` at this point
-        obj.base.set_mutable_binding(obj.name, value)
+from jspy import js
 
 
 def perform_binary_op(op, left, right):
@@ -94,16 +25,6 @@ def perform_binary_op(op, left, right):
         return left | right
     else:
         raise ValueError('Unsupported binary operand: %r' % op)
-
-
-class JSArray(object):
-    def __init__(self, items):
-        self.items = items
-
-
-class JSObject(object):
-    def __init__(self, items):
-        self.items = items
 
 
 class Node(object):
@@ -170,7 +91,7 @@ class Identifier(Node):
     arguments = ['name']
 
     def eval(self, context):
-        return JSReference(self.name, context)
+        return js.Reference(self.name, context)
 
 
 class Literal(Node):
@@ -185,22 +106,22 @@ class ArrayLiteral(Node):
 
     def eval(self, context):
         # TODO: Ellision
-        return JSArray(items=[get_value(item.eval(context)) for item in self.items])
+        return js.Array(items=[js.get_value(item.eval(context)) for item in self.items])
 
 
 class ObjectLiteral(Node):
     children = ['items']
 
     def eval(self, context):
-        return JSObject(items=[get_value(item.eval(context)) for item in self.items])
+        return js.Object(items=[js.get_value(item.eval(context)) for item in self.items])
 
 
 class PropertyAccessor(Node):
     children = ['obj', 'key']
 
     def eval(self, context):
-        base = get_value(self.obj.eval(context))
-        return base[get_value(self.key.eval(context))]
+        base = js.get_value(self.obj.eval(context))
+        return base[js.get_value(self.key.eval(context))]
 
 
 class Constructor(Node):
@@ -208,7 +129,7 @@ class Constructor(Node):
 
     def eval(self, context):
         # TODO
-        return JSObject()
+        return js.Object()
 
 
 class FunctionCall(Node):
@@ -216,8 +137,8 @@ class FunctionCall(Node):
 
     def eval(self, context):
         # TODO
-        f = get_value(self.obj.eval(context))
-        return f([get_value(argument.eval(context)) for argument in self.arguments])
+        f = js.get_value(self.obj.eval(context))
+        return f([js.get_value(argument.eval(context)) for argument in self.arguments])
 
 
 class UnaryOp(Node):
@@ -236,29 +157,29 @@ class UnaryOp(Node):
             # TODO
             return 'object'
         elif self.op == '++':
-            new_value = get_value(expression_value) + 1
-            put_value(expression_value, new_value)
+            new_value = js.get_value(expression_value) + 1
+            js.put_value(expression_value, new_value)
             return new_value
         elif self.op == '--':
-            new_value = get_value(expression_value) - 1
-            put_value(expression_value, new_value)
+            new_value = js.get_value(expression_value) - 1
+            js.put_value(expression_value, new_value)
             return new_value
         elif self.op == 'postfix++':
-            old_value = get_value(expression_value)
-            put_value(expression_value, old_value + 1)
+            old_value = js.get_value(expression_value)
+            js.put_value(expression_value, old_value + 1)
             return old_value
         elif self.op == 'postfix--':
-            old_value = get_value(expression_value)
-            put_value(expression_value, old_value - 1)
+            old_value = js.get_value(expression_value)
+            js.put_value(expression_value, old_value - 1)
             return old_value            
         elif self.op == '+':
-            return +get_value(expression_value)
+            return +js.get_value(expression_value)
         elif self.op == '-':
-            return -get_value(expression_value)
+            return -js.get_value(expression_value)
         elif self.op == '~':
-            return ~get_value(expression_value)
+            return ~js.get_value(expression_value)
         elif self.op == '!':
-            return not get_value(expression_value)
+            return not js.get_value(expression_value)
         else:
             raise SyntaxError('Unknown unary operand: %s' % self.op)
 
@@ -268,8 +189,8 @@ class BinaryOp(Node):
     children = ['left_expression', 'right_expression']
 
     def eval(self, context):
-        left = get_value(self.left_expression.eval(context))
-        right = get_value(self.right_expression.eval(context))
+        left = js.get_value(self.left_expression.eval(context))
+        right = js.get_value(self.right_expression.eval(context))
         if self.op == '*':
             return left * right
         elif self.op == '/':
@@ -324,11 +245,11 @@ class ConditionalOp(Node):
     children = ['condition', 'true_expression', 'false_expression']
 
     def eval(self, context):
-        condition_value = get_value(self.condition.eval(context))
+        condition_value = js.get_value(self.condition.eval(context))
         if condition_value:
-            return get_value(self.true_expression.eval(context))
+            return js.get_value(self.true_expression.eval(context))
         else:
-            return get_value(self.false_expression.eval(context))
+            return js.get_value(self.false_expression.eval(context))
 
 
 class Assignment(Node):
@@ -337,15 +258,15 @@ class Assignment(Node):
 
     def eval(self, context):
         ref = self.reference.eval(context)
-        value = get_value(self.expression.eval(context))
+        value = js.get_value(self.expression.eval(context))
         if self.op == '=':
-            put_value(ref, value)
+            js.put_value(ref, value)
             return value
         else:
             new_value = perform_binary_op(self.op[:-1],
-                                          get_value(ref),
+                                          js.get_value(ref),
                                           value)
-            put_value(ref, new_value)
+            js.put_value(ref, new_value)
             return new_value
 
 
