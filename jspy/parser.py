@@ -644,10 +644,13 @@ class Parser(object):
         else:
             p[0] = ast.MultiExpression(left_expression=p[1], right_expression=p[3])
 
+    #
+    # Empty grammar rule (used in optional rules)
+    #
     def p_empty(self, p):
-        """empty : """
+        """empty :  """
         p[0] = None
-    
+
     # Error handling
     def p_error(self, p):
         raise TypeError('Parse error before: %r!' % p)
