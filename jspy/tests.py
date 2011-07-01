@@ -287,4 +287,3 @@ class TestEvalFunction(unittest2.TestCase):
         self.assertEqual(context['f2'], 1)
         self.assertEqual(context['f5'], 3)
         self.assertEqual(context['f7'], 8)
-

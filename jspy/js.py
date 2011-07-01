@@ -132,7 +132,6 @@ class Reference(object):
         return 'Reference(%r, %r)' % (self.name, self.base)
 
 
-
 def get_value(obj):
     """Returns a value of `obj`, resolving a reference if needed.
     
@@ -162,3 +161,4 @@ def put_value(obj, value):
     else:
         # `obj.base` must be an `ExecutionContext` at this point
         obj.base.set_mutable_binding(obj.name, value)
+

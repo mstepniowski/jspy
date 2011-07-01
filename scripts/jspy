@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+import optparse
+from jspy import eval_file
+
+
+if __name__ == '__main__':
+    # Parse commandline arguments
+    usage = """Usage: %prog [options] SOURCE
+    Run JavaScript file SOURCE."""
+
+    parser = optparse.OptionParser(usage=usage)
+
+    parser.add_option('-c', '--context', action='store_true', dest='dump_context', default=False,
+                      help='dump execution context after running the file')
+
+    options, args = parser.parse_args()
+    
+    if len(args) != 1:
+        parser.print_help()
+        exit(1)
+
+    # Run the file
+    result, context = eval_file(file(args[0]))
+    
+    print 'Result: %r' % result
+
+    if options.dump_context:
+        print
+        print 'Context:'
+        print '--------'
+        print
+        
+        items = sorted(context.items())
+        
+        for name, value in items:
+            print '%s: %r' % (name, value)
+    
