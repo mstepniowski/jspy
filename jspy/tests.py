@@ -1,6 +1,7 @@
+import os.path
 import unittest2
 from jspy.parser import Parser
-from jspy import ast, js
+from jspy import ast, js, eval_file
 
 
 class TestParseExpression(unittest2.TestCase):
@@ -154,12 +155,17 @@ class TestEvalStatement(unittest2.TestCase):
     def test_block_with_empty_statements(self):
         self.assertEqual(self.eval('{7;;}'), js.Completion(js.NORMAL, 7, js.EMPTY))
 
+    def test_variable_declaration(self):
+        context = js.ExecutionContext({})
+        self.assertEqual(self.eval('var x = 7;', context), js.EMPTY_COMPLETION)
+        self.assertEqual(context['x'], 7)
+
     def test_variable_declaration_list(self):
         context = js.ExecutionContext({})
         self.assertEqual(self.eval('var x = 7, y = 5;', context), js.EMPTY_COMPLETION)
         self.assertEqual(context['x'], 7)
         self.assertEqual(context['y'], 5)
-
+        
     def test_if_statement(self):
         self.assertEqual(self.eval('if (2 + 2 == 4) 3;'), js.Completion(js.NORMAL, 3, js.EMPTY))
         self.assertEqual(self.eval('if (false) 3;'), js.EMPTY_COMPLETION)
@@ -287,3 +293,20 @@ class TestEvalFunction(unittest2.TestCase):
         self.assertEqual(context['f2'], 1)
         self.assertEqual(context['f5'], 3)
         self.assertEqual(context['f7'], 8)
+
+    def test_variable_declaration(self):
+        context = js.ExecutionContext({})
+        self.assertEqual(self.eval('var x = 7;', context), js.EMPTY_COMPLETION)
+        self.assertEqual(context['x'], 7)
+
+
+class TestEvalProgram(unittest2.TestCase):
+    def eval(self, file_name):
+        package_directory = os.path.dirname(__file__)
+        file_path = os.path.join(package_directory, 'test_files', file_name)
+        return eval_file(file_path)
+
+    def test_basic_declaration(self):
+        result, context = self.eval('basic_declaration.js')
+        self.assertEqual(result, 35)
+

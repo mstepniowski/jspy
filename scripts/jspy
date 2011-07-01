@@ -21,7 +21,7 @@ if __name__ == '__main__':
         exit(1)
 
     # Run the file
-    result, context = eval_file(file(args[0]))
+    result, context = eval_file(args[0])
     
     print 'Result: %r' % result
 
