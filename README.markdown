@@ -21,14 +21,15 @@ Implemented features
 --------------------
 
   * Expressions (excluding `delete`, `void`, `typeof`, `instanceof` and `in` operators)
-
+  * Statements (excluding `for` loop, `with`, `switch`, labels, exception handling and `debugger`)
 
 Still todo
 ----------
 
-  * `delete`, `void`, `typeof`, `instanceof` and `in` operators 
+  * `delete`, `void`, `typeof`, `instanceof` and `in` operators
+  * `for` loop, `with`, `switch`, labels, exception handling and `debugger`)
   * Function expressions
   * Nested contexts
-  * Statements
   * Objects
   * Prototypal inheritance
+
