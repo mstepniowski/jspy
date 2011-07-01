@@ -240,4 +240,20 @@ class TestEvalFunction(unittest2.TestCase):
         program = """var double = function (f, x) { return f(f(x)); };
                      double(function (x) { return x * x; }, 2);"""
         self.assertEqual(self.eval(program), js.Completion(js.NORMAL, 16, js.EMPTY))
+
+    def test_modify_global_variable(self):
+        program = """var x = 1, incrementX = function () { x += 1; };
+                     incrementX();
+                     incrementX();
+                     x;"""
+        self.assertEqual(self.eval(program), js.Completion(js.NORMAL, 3, js.EMPTY))
+        
+    def test_shadowing(self):
+        program = """var x = 1, shadow = function () {
+                         var x = 3; x += 1; return x;
+                     };
+                     shadow();"""
+        context = js.ExecutionContext({})
+        self.assertEqual(self.eval(program, context), js.Completion(js.NORMAL, 4, js.EMPTY))
+        self.assertEqual(context['x'], 1)
         

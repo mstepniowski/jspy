@@ -38,13 +38,13 @@ class Function(object):
         self.parameters = parameters
         self.body = body
         self.scope = scope
-
+        self.declared_vars = body.get_declared_vars()
+    
     def call(self, this, args):
         """Internal [[Call]] method of Function object.
 
         See [ECMA-262 13.2.1] for a basic algorithm."""
-        function_context = ExecutionContext(self.prepare_arg_dict(args),
-                                            parent=self.scope)
+        function_context = self.prepare_function_context(args)
         result = self.body.eval(function_context)
         if result.type is RETURN:
             return result.value
@@ -52,14 +52,19 @@ class Function(object):
             # No return statement in function
             return UNDEFINED
 
-    def prepare_arg_dict(self, args):
+    def prepare_function_context(self, args):
+        local_vars_dict = dict((name, UNDEFINED) for name in self.declared_vars)
+        local_vars_dict.update(self.prepare_args_dict(args))
+        return ExecutionContext(local_vars_dict, parent=self.scope)
+
+    def prepare_args_dict(self, args):
         result = {'arguments': args}
         for name in self.parameters:
             result[name] = UNDEFINED
         for name, value in zip(self.parameters, args):
             result[name] = value
         return result
-    
+
     def __repr__(self):
         return 'Function(parameters=%r, body=%r, scope=%r)' % (self.parameters,
                                                                self.body,
@@ -77,22 +82,29 @@ class ExecutionContext(object):
         self.parent = parent
 
     def __getitem__(self, name):
-        return self.env[name]
+        try:
+            return self.env[name]
+        except KeyError:
+            if self.parent is None:
+                raise ReferenceError('Reference %r not found in %r' % (name, self))
+            return self.parent[name]
 
     def __setitem__(self, name, value):
         self.env[name] = value
     
     def get_binding_value(self, name):
-        try:
-            return self.env[name]
-        except KeyError:
-            raise ReferenceError('Reference %r not found in %r' % (name, self))
+        return self[name]
     
     def set_mutable_binding(self, name, value):
-        # TODO: Reenable this after adding support for nested contexts
-        # if name not in self:
-        #     raise ReferenceError("%r is not declared")
-        self[name] = value
+        if name not in self.env:
+            if self.parent is None:
+                # XXX: Should I support strict or non-strict mode?
+                # raise ReferenceError("%r is not declared" % name)
+                self.env[name] = value
+            else:
+                self.parent.set_mutable_binding(name, value)
+        else:
+            self.env[name] = value
 
     def get_this_reference(self):
         return self['this']

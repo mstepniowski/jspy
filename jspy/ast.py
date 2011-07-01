@@ -1,6 +1,13 @@
 from jspy import js
 
 
+def set_union(sets):
+    result = set()
+    for s in sets:
+        result.update(s)
+    return result
+
+
 def perform_binary_op(op, left, right):
     if op == '*':
         return left * right
@@ -54,7 +61,20 @@ class Node(object):
         kwargs_repr = ', '.join('%s=%r' % (name, value) for name, value in kwargs.items())
         return '%s(%s)' % (self.__class__.__name__, kwargs_repr)
 
+    def eval(self, context):
+        """Evaluate the expression (possibly modifying context) and return its value."""
+        raise NotImplementedError()
 
+    def get_declared_vars(self):
+        """Return a set of all variables declared in this scope.
+
+        JavaScript has only function scopes."""
+        return set()
+
+
+#
+# Expressions
+#
 class This(Node):
     """The this keyword evaluates to the value of the ThisBinding of the current execution context."""
 
@@ -252,6 +272,9 @@ class MultiExpression(Node):
         return self.right_expression.eval(context)
 
 
+#
+# Statements
+#
 class Block(Node):
     children = ['statements']
 
@@ -266,6 +289,9 @@ class Block(Node):
                 result = partial_result
         return result
 
+    def get_declared_vars(self):
+        return set_union(s.get_declared_vars() for s in self.statements)
+
 
 class VariableDeclarationList(Node):
     children = ['declarations']
@@ -274,6 +300,9 @@ class VariableDeclarationList(Node):
         for declaration in self.declarations:
             declaration.eval(context)
         return js.EMPTY_COMPLETION
+
+    def get_declared_vars(self):
+        return set_union(d.get_declared_vars() for d in self.declarations)
 
 
 class VariableDeclaration(Node):
@@ -284,6 +313,9 @@ class VariableDeclaration(Node):
         value = js.get_value(self.initialiser.eval(context))
         js.put_value(ref, value)
         return js.Completion(js.NORMAL, ref.name, js.EMPTY)
+
+    def get_declared_vars(self):
+        return set(self.identifier.name)
 
 
 class EmptyStatement(Node):
@@ -310,6 +342,10 @@ class IfStatement(Node):
         else:
             return self.false_statement.eval(context)
 
+    def get_declared_vars(self):
+        return set_union([self.true_statement.get_declared_vars(),
+                          self.false_statement.get_declared_vars()])
+
 
 class WhileStatement(Node):
     children = ['condition', 'statement']
@@ -327,6 +363,9 @@ class WhileStatement(Node):
                 return js.Completion(js.NORMAL, result_value, js.EMPTY)
             elif js.is_abrupt(stmt) and stmt.type is not js.CONTINUE:
                 return stmt
+
+    def get_declared_vars(self):
+        return self.statement.get_declared_vars()
 
 
 class DoWhileStatement(Node):
@@ -346,6 +385,9 @@ class DoWhileStatement(Node):
             iterating = js.get_value(self.condition.eval(context))
         
         return js.Completion(js.NORMAL, result_value, js.EMPTY)
+
+    def get_declared_vars(self):
+        return self.statement.get_declared_vars()
 
 
 class ContinueStatement(Node):
