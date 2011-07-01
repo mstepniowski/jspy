@@ -98,6 +98,24 @@ class TestParseStatement(unittest2.TestCase):
         self.assertEqual(parser.parse('{ 1; 3; }'),
                          ast.Block(statements=[ast.ExpressionStatement(expression=ast.Literal(value=1)),
                                                ast.ExpressionStatement(expression=ast.Literal(value=3))]))
+    
+    def test_variable_statement(self):
+        parser = Parser(start='statement')
+        self.assertEqual(parser.parse('var x = 7, y = 5;'),
+                         ast.VariableDeclarationList(
+                declarations=[ast.VariableDeclaration(identifier=ast.Identifier(name='x'),
+                                                      initialiser=ast.Literal(value=7)),
+                              ast.VariableDeclaration(identifier=ast.Identifier(name='y'),
+                                                      initialiser=ast.Literal(value=5))]))
+
+    def test_variable_statement_without_initialiser(self):
+        parser = Parser(start='statement')
+        self.assertEqual(parser.parse('var x, y = 5;'),
+                         ast.VariableDeclarationList(
+                declarations=[ast.VariableDeclaration(identifier=ast.Identifier(name='x'),
+                                                      initialiser=None),
+                              ast.VariableDeclaration(identifier=ast.Identifier(name='y'),
+                                                      initialiser=ast.Literal(value=5))]))
 
 
 class TestEvalStatement(unittest2.TestCase):
@@ -123,3 +141,11 @@ class TestEvalStatement(unittest2.TestCase):
 
     def test_block_with_empty(self):
         self.assertEqual(self.eval('{7;;}'), js.Completion(js.NORMAL, 7, js.EMPTY))
+
+    def test_variable_declaration_list(self):
+        context = js.ExecutionContext({})
+        self.assertEqual(self.eval('var x = 7, y = 5;', context), js.EMPTY_COMPLETION)
+        self.assertEqual(context['x'], 7)
+        self.assertEqual(context['y'], 5)
+
+        

@@ -303,11 +303,13 @@ class VariableDeclarationList(Node):
 
 
 class VariableDeclaration(Node):
-    arguments = ['name']
-    children = ['initialiser']
+    children = ['identifier', 'initialiser']
 
     def eval(self, context):
-        return js.EMPTY_COMPLETION
+        ref = self.identifier.eval(context)
+        value = js.get_value(self.initialiser.eval(context))
+        js.put_value(ref, value)
+        return js.Completion(js.NORMAL, ref.name, js.EMPTY)
 
 
 class EmptyStatement(Node):

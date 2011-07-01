@@ -39,8 +39,9 @@ class ExecutionContext(dict):
         return self[name]
 
     def set_mutable_binding(self, name, value):
-        if name not in self:
-            raise ReferenceError("%r is not declared")
+        # TODO: Reenable this after adding support for nested contexts
+        # if name not in self:
+        #     raise ReferenceError("%r is not declared")
         self[name] = value
 
     def get_this_reference(self):

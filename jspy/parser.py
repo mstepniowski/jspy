@@ -31,6 +31,7 @@ class Parser(object):
     #
     def p_primary_expression(self, p):
         """primary_expression : THIS
+                              | identifier
                               | literal
                               | array_literal
                               | LPAREN expression RPAREN"""
@@ -39,8 +40,8 @@ class Parser(object):
         else:
             p[0] = p[2]
 
-    def p_primary_expression_id(self, p):
-        """primary_expression : ID"""
+    def p_identifier(self, p):
+        """identifier : ID"""
         p[0] = ast.Identifier(name=p[1])
 
     def p_literal(self, p):
@@ -489,13 +490,22 @@ class Parser(object):
             p[0] = p[1] + [p[3]]
 
     def p_variable_declaration(self, p):
-        """variable_declaration : ID EQUALS assignment_expression"""
-        p[0] = ast.VariableDeclaration(name=p[1], initialiser=p[3])
+        """variable_declaration : identifier
+                                | identifier EQUALS assignment_expression"""
+        if len(p) == 2:
+            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=None)
+        else:
+            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=p[3])
 
     def p_variable_declaration_no_in(self, p):
-        """variable_declaration_no_in : ID EQUALS assignment_expression_no_in"""
-        p[0] = ast.VariableDeclaration(name=p[1], initialiser=p[3])
+        """variable_declaration_no_in : identifier
+                                      | identifier EQUALS assignment_expression_no_in"""
+        if len(p) == 2:
+            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=None)
+        else:
+            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=p[3])
 
+        
     #
     # [ECMA-262 12.3] Empty Statement
     #
