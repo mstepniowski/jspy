@@ -30,11 +30,37 @@ class Array(object):
         self.items = items
 
 
+class Function(object):
+    """Function object as defined in [ECMA-262 15.3].
+
+    Algorithm for creating Function objects is in [ECMA-262 13.2]."""
+    def __init__(self, parameters, body, scope):
+        self.parameters = parameters
+        self.body = body
+        self.scope = scope
+
+    def call(self, this, args):
+        """Internal [[Call]] method of Function object.
+
+        See [ECMA-262 13.2.1] for a basic algorithm."""
+        function_context = ExecutionContext(args, parent=self.scope)
+        result = self.body.eval(function_context)
+        if result.type is RETURN:
+            return result.value
+        else:
+            # No return statement in function
+            return UNDEFINED
+
+
 class ReferenceError(RuntimeError):
     pass
 
 
 class ExecutionContext(dict):
+    def __init__(self, env, parent=None):
+        super(ExecutionContext, self).__init__(env)
+        self.parent = parent
+    
     def get_binding_value(self, name):
         return self[name]
 

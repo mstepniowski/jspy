@@ -61,7 +61,7 @@ class Parser(object):
     #
     def p_program(self, p):
         """program : statement_list_opt"""
-        p[0] = ast.Block(statements=p[2])
+        p[0] = ast.Block(statements=p[1])
     
     def p_statement_list(self, p):
         """statement_list : statement

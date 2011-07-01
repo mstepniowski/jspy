@@ -111,9 +111,8 @@ class FunctionCall(Node):
     children = ['obj', 'arguments']
 
     def eval(self, context):
-        # TODO
         f = js.get_value(self.obj.eval(context))
-        return f([js.get_value(argument.eval(context)) for argument in self.arguments])
+        return f.call(None, [js.get_value(argument.eval(context)) for argument in self.arguments])
 
 
 class UnaryOp(Node):
@@ -372,8 +371,10 @@ class ReturnStatement(Node):
 
 
 class FunctionDefinition(Node):
-    children = ['parameter_list', 'body']
+    children = ['parameters', 'body']
 
     def eval(self, context):
-        pass
+        return js.Function(parameters=self.parameters,
+                           body=self.body,
+                           scope=context)
 

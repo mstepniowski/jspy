@@ -43,6 +43,16 @@ class TestParseExpression(unittest2.TestCase):
                                                                 left_expression=ast.Literal(value=5),
                                                                 right_expression=ast.Literal(value=2))))
 
+    def test_function_expression(self):
+        parser = Parser(start='expression')
+        self.assertEqual(parser.parse('function (x, y) { return x + y }'),
+                         ast.FunctionDefinition(parameters=[ast.Identifier(name='x'),
+                                                            ast.Identifier(name='y')],
+                                                body=ast.Block(
+                    statements=[ast.ReturnStatement(expression=ast.BinaryOp(op='+',
+                                                                            left_expression=ast.Identifier(name='x'),
+                                                                            right_expression=ast.Identifier(name='y')))])))
+
 
 class TestEvalExpression(unittest2.TestCase):
     def eval_expression(self, expression, context=None):
@@ -134,7 +144,7 @@ class TestEvalStatement(unittest2.TestCase):
 
     def test_block(self):
         self.assertEqual(self.eval('{ 1; 3; }'), js.Completion(js.NORMAL, 3, js.EMPTY))
-    
+
     def test_expression_statement(self):
         self.assertEqual(self.eval('1 + 2 * 7;'), js.Completion(js.NORMAL, 15, js.EMPTY))
 
@@ -202,7 +212,22 @@ class TestEvalStatement(unittest2.TestCase):
         self.assertEqual(context['x'], 3)
         self.assertEqual(context['y'], 2)
 
-    @unittest2.skip('TODO when we\'ll have functions')
+
+class TestEvalFunction(unittest2.TestCase):
+    def eval(self, expression, context=None):
+        if context is None:
+            context = js.ExecutionContext({})
+        if not isinstance(context, js.ExecutionContext):
+            context = js.ExecutionContext(context)
+        expression_ast = Parser(start='program').parse(expression)
+        return js.get_value(expression_ast.eval(context))
+
     def test_return_statement(self):
-        pass
+        program = """function () { return 4; 7; } ();"""
+        self.assertEqual(self.eval(program), js.Completion(js.NORMAL, 4, js.EMPTY))
+
+    def test_function_as_variable(self):
+        program = """var f = function () { return 42; };
+                     f();"""
+        self.assertEqual(self.eval(program), js.Completion(js.NORMAL, 42, js.EMPTY))
 
