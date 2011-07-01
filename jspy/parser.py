@@ -61,7 +61,8 @@ class Parser(object):
     #
     def p_program(self, p):
         """program : statement_list_opt"""
-
+        p[0] = ast.Block(statements=p[2])
+    
     def p_statement_list(self, p):
         """statement_list : statement
                           | statement_list statement"""
@@ -83,8 +84,8 @@ class Parser(object):
     #
     # TODO: Other ways of defining/declaring functions
     def p_function_expression(self, p):
-        """function_expression : FUNCTION LPAREN formal_parameter_list_opt RPAREN LBRACE statement_list_opt RBRACE"""
-        p[0] = ast.FunctionDefinition(parameter_list=p[3], body=p[6])
+        """function_expression : FUNCTION LPAREN formal_parameter_list_opt RPAREN block"""
+        p[0] = ast.FunctionDefinition(parameters=p[3], body=p[5])
     
     def p_formal_parameter_list(self, p):
         """formal_parameter_list : identifier
@@ -136,25 +137,9 @@ class Parser(object):
         else:
             p[0] = p[1] + [p[3]]
 
-    def p_variable_declaration_list_no_in(self, p):
-        """variable_declaration_list_no_in : variable_declaration_no_in
-                                           | variable_declaration_list_no_in COMMA variable_declaration_no_in"""
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[3]]
-
     def p_variable_declaration(self, p):
         """variable_declaration : identifier
                                 | identifier EQUALS assignment_expression"""
-        if len(p) == 2:
-            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=None)
-        else:
-            p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=p[3])
-
-    def p_variable_declaration_no_in(self, p):
-        """variable_declaration_no_in : identifier
-                                      | identifier EQUALS assignment_expression_no_in"""
         if len(p) == 2:
             p[0] = ast.VariableDeclaration(identifier=p[1], initialiser=None)
         else:
@@ -442,21 +427,6 @@ class Parser(object):
         else:
             p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
 
-
-    # Needed to avoid confusing the `in` operator within relational
-    # expression with the `in` operator in a `for` statement
-    def p_relational_expression_no_in(self, p):
-        """relational_expression_no_in : shift_expression
-                                       | relational_expression_no_in LT shift_expression
-                                       | relational_expression_no_in LE shift_expression
-                                       | relational_expression_no_in GT shift_expression
-                                       | relational_expression_no_in GE shift_expression
-                                       | relational_expression_no_in INSTANCEOF shift_expression"""
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
-
     #
     # [ECMA-262 11.9] Equality Operators
     #
@@ -466,17 +436,6 @@ class Parser(object):
                                | equality_expression NEQ relational_expression
                                | equality_expression STRICTEQ relational_expression
                                | equality_expression STRICTNEQ relational_expression"""
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
-
-    def p_equality_expression_no_in(self, p):
-        """equality_expression_no_in : relational_expression_no_in
-                               | equality_expression_no_in EQ relational_expression_no_in
-                               | equality_expression_no_in NEQ relational_expression_no_in
-                               | equality_expression_no_in STRICTEQ relational_expression_no_in
-                               | equality_expression_no_in STRICTNEQ relational_expression_no_in"""
         if len(p) == 2:
             p[0] = p[1]
         else:
@@ -493,14 +452,6 @@ class Parser(object):
         else:
             p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
 
-    def p_bitwise_and_expression_no_in(self, p):
-        """bitwise_and_expression_no_in : equality_expression_no_in
-                                        | bitwise_and_expression_no_in AND equality_expression_no_in"""
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
-
     def p_bitwise_xor_expression(self, p):
         """bitwise_xor_expression : bitwise_and_expression
                                   | bitwise_xor_expression XOR bitwise_and_expression"""
@@ -509,25 +460,9 @@ class Parser(object):
         else:
             p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
 
-    def p_bitwise_xor_expression_no_in(self, p):
-        """bitwise_xor_expression_no_in : bitwise_and_expression_no_in
-                                        | bitwise_xor_expression_no_in XOR bitwise_and_expression_no_in"""
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
-
     def p_bitwise_or_expression(self, p):
         """bitwise_or_expression : bitwise_xor_expression
                                  | bitwise_or_expression OR bitwise_xor_expression"""
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
-
-    def p_bitwise_or_expression_no_in(self, p):
-        """bitwise_or_expression_no_in : bitwise_xor_expression_no_in
-                                       | bitwise_or_expression_no_in OR bitwise_xor_expression_no_in"""
         if len(p) == 2:
             p[0] = p[1]
         else:
@@ -544,25 +479,9 @@ class Parser(object):
         else:
             p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
 
-    def p_logical_and_expression_no_in(self, p):
-        """logical_and_expression_no_in : bitwise_or_expression_no_in
-                                        | logical_and_expression_no_in LAND bitwise_or_expression_no_in"""
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
-
     def p_logical_or_expression(self, p):
         """logical_or_expression : logical_and_expression
                                  | logical_or_expression LOR logical_and_expression"""
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = ast.BinaryOp(op=p[2], left_expression=p[1], right_expression=p[3])
-
-    def p_logical_or_expression_no_in(self, p):
-        """logical_or_expression_no_in : logical_and_expression_no_in
-                                       | logical_or_expression_no_in LOR logical_and_expression_no_in"""
         if len(p) == 2:
             p[0] = p[1]
         else:
@@ -579,14 +498,6 @@ class Parser(object):
         else:
             p[0] = ast.ConditionalOp(condition=p[1], true_expression=p[3], false_expression=p[5])
         
-    def p_conditional_expression_no_in(self, p):
-        """conditional_expression_no_in : logical_or_expression_no_in
-                                        | logical_or_expression_no_in CONDOP assignment_expression_no_in COLON assignment_expression_no_in"""
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = ast.ConditionalOp(condition=p[1], true_expression=p[3], false_expression=p[5])
-    
     #
     # [ECMA-262 11.13] Assignment Operators
     #
@@ -598,14 +509,6 @@ class Parser(object):
         else:
             p[0] = ast.Assignment(op=p[2], reference=p[1], expression=p[3])
     
-    def p_assignment_expression_no_in(self, p):
-        """assignment_expression_no_in : conditional_expression_no_in
-                                       | left_hand_side_expression assignment_operator assignment_expression_no_in"""
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = ast.Assignment(op=p[2], reference=p[1], expression=p[3])
-        
     def p_assignment_operator(self, p):
         """assignment_operator : EQUALS
                                | TIMESEQUAL
@@ -635,14 +538,6 @@ class Parser(object):
         """expression_opt : expression
                           | empty"""
         p[0] = p[1]
-
-    def p_expression_no_in(self, p):
-        """expression_no_in : assignment_expression_no_in
-                            | expression_no_in COMMA assignment_expression_no_in"""
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = ast.MultiExpression(left_expression=p[1], right_expression=p[3])
 
     #
     # Empty grammar rule (used in optional rules)
