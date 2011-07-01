@@ -3,12 +3,14 @@ from distutils.core import setup
 
 
 setup(
-    name='librarian',
-    version='1.3',
-    description='Converter from WolneLektury.pl XML-based language to XHTML, TXT and other formats',
-    author="Marek Stepniowski",
+    name='jspy',
+    version='1.0',
+    description='JavaScript interpreter in Python',
+    author='Marek Stepniowski',
     author_email='marek@stepniowski.com',
     url='http://github.com/zuber/jspy',
+    platforms='Cross Platform',
+    
     packages=['jspy', 'ply'],
-    scripts=['scripts/jspy']
+    scripts=['scripts/jspy'],
 )
