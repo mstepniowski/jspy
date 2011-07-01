@@ -167,4 +167,15 @@ class TestEvalStatement(unittest2.TestCase):
                       if (true) 3;
                       else 5;"""
         self.assertEqual(self.eval(stmt), js.Completion(js.NORMAL, 3, js.EMPTY))
+
+    def test_do_while_statement(self):
+        context = js.ExecutionContext({'x': 3})
+        self.assertEqual(self.eval('do ++x; while (x < 3);', context), js.Completion(js.NORMAL, 4, js.EMPTY))
+        self.assertEqual(context['x'], 4)
+
+    def test_while_statement(self):
+        context = js.ExecutionContext({'x': 3})
+        self.assertEqual(self.eval('while (x < 5) ++x;', context), js.Completion(js.NORMAL, 5, js.EMPTY))
+        self.assertEqual(context['x'], 5)
+
         

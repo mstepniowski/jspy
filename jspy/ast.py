@@ -310,3 +310,40 @@ class IfStatement(Node):
             return self.true_statement.eval(context)
         else:
             return self.false_statement.eval(context)
+
+
+class WhileStatement(Node):
+    children = ['condition', 'statement']
+
+    def eval(self, context):
+        result_value = js.EMPTY
+        while True:
+            condition_value = js.get_value(self.condition.eval(context))
+            if not condition_value:
+                return js.Completion(js.NORMAL, result_value, js.EMPTY)
+            stmt = self.statement.eval(context)
+            if stmt.value is not js.EMPTY:
+                result_value = stmt.value
+            if stmt.type is js.BREAK:
+                return js.Completion(js.NORMAL, result_value, js.EMPTY)
+            elif js.is_abrupt(stmt) and stmt.type is not js.CONTINUE:
+                return stmt
+
+
+class DoWhileStatement(Node):
+    children = ['condition', 'statement']
+
+    def eval(self, context):
+        result_value = js.EMPTY
+        iterating = True
+        while iterating:
+            stmt = self.statement.eval(context)
+            if stmt.value is not js.EMPTY:
+                result_value = stmt.value
+            if stmt.type is js.BREAK:
+                return js.Completion(js.NORMAL, result_value, js.EMPTY)
+            elif js.is_abrupt(stmt) and stmt.type is not js.CONTINUE:
+                return stmt
+            iterating = js.get_value(self.condition.eval(context))
+        
+        return js.Completion(js.NORMAL, result_value, js.EMPTY)

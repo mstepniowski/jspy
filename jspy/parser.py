@@ -64,7 +64,8 @@ class Parser(object):
                      | variable_statement
                      | empty_statement
                      | expression_statement
-                     | if_statement"""
+                     | if_statement
+                     | iteration_statement"""
         p[0] = p[1]
 
     #
@@ -153,7 +154,24 @@ class Parser(object):
             p[0] = ast.IfStatement(condition=p[3],
                                    true_statement=p[5],
                                    false_statement=ast.EmptyStatement())
-    
+
+    #
+    # [ECMA-262 12.6] Iteration Statements
+    #
+    def p_iteration_statement(self, p):
+        """iteration_statement : do_while_statement
+                               | while_statement"""
+        # TODO : for_statement, for_var_statement, for_in_statement, for_var_in_statement
+        p[0] = p[1]
+
+    def p_while_statement(self, p):
+        """while_statement : WHILE LPAREN expression RPAREN statement"""
+        p[0] = ast.WhileStatement(condition=p[3], statement=p[5])
+
+    def p_do_while_statement(self, p):
+        """do_while_statement : DO statement WHILE LPAREN expression RPAREN SEMICOLON"""
+        p[0] = ast.DoWhileStatement(condition=p[5], statement=p[2])
+
     #
     # [ECMA-262 11.1] Primary Expressions
     #
