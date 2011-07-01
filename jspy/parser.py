@@ -1,16 +1,26 @@
+import os.path
 import ply.yacc
 from jspy.lexer import Lexer
 from jspy import ast
 
 
 class Parser(object):
-    def __init__(self, lexer=None, start='expression', debug=False):
+    def __init__(self, lexer=None, start='expression',
+                 tabmodule=None,
+                 outputdir=None,
+                 debug=False):
+        if outputdir is None:
+            outputdir = os.path.dirname(__file__)
+        if tabmodule is None:
+            tabmodule = 'jspy._parser_' + start
         if lexer is None:
             lexer = Lexer()
         self.tokens = lexer.tokens
         self.lexer = lexer
-        self.parser = ply.yacc.yacc(module=self, 
+        self.parser = ply.yacc.yacc(module=self,
                                     start=start,
+                                    tabmodule=tabmodule,
+                                    outputdir=outputdir,
                                     debug=debug)
 
     def parse(self, text):
@@ -23,7 +33,6 @@ class Parser(object):
         """primary_expression : THIS
                               | literal
                               | array_literal
-                              | object_literal
                               | LPAREN expression RPAREN"""
         if len(p) == 2:
             p[0] = p[1]
@@ -426,6 +435,81 @@ class Parser(object):
             p[0] = p[1]
         else:
             p[0] = ast.MultiExpression(left_expression=p[1], right_expression=p[3])
+
+    #
+    # [ECMA-262 12] Statements
+    #
+    def p_statement(self, p):
+        """statement : block
+                     | variable_statement
+                     | empty_statement
+                     | expression_statement"""
+        p[0] = p[1]
+
+    #
+    # [ECMA-262 12.1] Block
+    #
+    def p_block(self, p):
+        """block : LBRACE RBRACE
+                 | LBRACE statement_list RBRACE"""
+        if len(p) == 2:
+            p[0] = ast.Block(statements=[])
+        else:
+            p[0] = ast.Block(statements=p[2])
+
+    def p_statement_list(self, p):
+        """statement_list : statement
+                          | statement_list statement"""
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[2]]
+    
+    #
+    # [ECMA-262 12.2] Variable Statement
+    #
+    def p_variable_statement(self, p):
+        """variable_statement : VAR variable_declaration_list SEMICOLON"""
+        p[0] = ast.VariableDeclarationList(declarations=p[2])
+    
+    def p_variable_declaration_list(self, p):
+        """variable_declaration_list : variable_declaration
+                                     | variable_declaration_list COMMA variable_declaration"""
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[3]]
+
+    def p_variable_declaration_list_no_in(self, p):
+        """variable_declaration_list_no_in : variable_declaration_no_in
+                                           | variable_declaration_list_no_in COMMA variable_declaration_no_in"""
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[3]]
+
+    def p_variable_declaration(self, p):
+        """variable_declaration : ID EQUALS assignment_expression"""
+        p[0] = ast.VariableDeclaration(name=p[1], initialiser=p[3])
+
+    def p_variable_declaration_no_in(self, p):
+        """variable_declaration_no_in : ID EQUALS assignment_expression_no_in"""
+        p[0] = ast.VariableDeclaration(name=p[1], initialiser=p[3])
+
+    #
+    # [ECMA-262 12.3] Empty Statement
+    #
+    def p_empty_statement(self, p):
+        """empty_statement : SEMICOLON"""
+        p[0] = ast.EmptyStatement()
+
+    #
+    # [ECMA-262 12.4] Expression Statement
+    #
+    # TODO: lookahead {, function
+    def p_expression_statement(self, p):
+        """expression_statement : expression SEMICOLON"""
+        p[0] = ast.ExpressionStatement(expression=p[1])
     
     # Error handling
     def p_error(self, p):

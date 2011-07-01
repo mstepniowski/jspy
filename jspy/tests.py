@@ -4,12 +4,12 @@ from jspy import ast, js
 
 
 class TestParseExpression(unittest2.TestCase):
-    def test_primary(self):
-        parser = Parser(start='expression')
-        self.assertEqual(parser.parse('{7: [9, 10, "ala ma kota"], "ala ma kota": {3: 4}}'),
-                         ast.ObjectLiteral(items={7: ast.ArrayLiteral(items=[
-                            ast.Literal(value=9), ast.Literal(value=10), ast.Literal(value='ala ma kota')]),
-                                                  'ala ma kota': ast.ObjectLiteral(items={3: 4})}))
+    # def test_primary(self):
+    #     parser = Parser(start='expression')
+    #     self.assertEqual(parser.parse('{7: [9, 10, "ala ma kota"], "ala ma kota": {3: 4}}'),
+    #                      ast.ObjectLiteral(items={7: ast.ArrayLiteral(items=[
+    #                         ast.Literal(value=9), ast.Literal(value=10), ast.Literal(value='ala ma kota')]),
+    #                                               'ala ma kota': ast.ObjectLiteral(items={3: 4})}))
 
     def test_binary_op(self):
         parser = Parser(start='expression')
@@ -90,3 +90,36 @@ class TestEvalExpression(unittest2.TestCase):
         context = js.ExecutionContext({'x': 15})        
         self.assertEqual(self.eval_expression('x /= 5 - 2', context), 5)
         self.assertEqual(context['x'], 5)
+
+
+class TestParseStatement(unittest2.TestCase):
+    def test_block(self):
+        parser = Parser(start='statement')
+        self.assertEqual(parser.parse('{ 1; 3; }'),
+                         ast.Block(statements=[ast.ExpressionStatement(expression=ast.Literal(value=1)),
+                                               ast.ExpressionStatement(expression=ast.Literal(value=3))]))
+
+
+class TestEvalStatement(unittest2.TestCase):
+    def eval(self, stmt, context=None):
+        if context is None:
+            context = js.ExecutionContext({})
+        if not isinstance(context, js.ExecutionContext):
+            context = js.ExecutionContext(context)
+        stmt_ast = Parser(start='statement', debug=True).parse(stmt)
+        return js.get_value(stmt_ast.eval(context))
+
+    def test_empty_statement(self):
+        self.assertEqual(self.eval(';'), js.EMPTY_COMPLETION)
+
+    def test_block(self):
+        self.assertEqual(self.eval('{ 1; 3; }'), js.Completion(js.NORMAL, 3, js.EMPTY))
+    
+    def test_expression_statement(self):
+        self.assertEqual(self.eval('1 + 2 * 7;'), js.Completion(js.NORMAL, 15, js.EMPTY))
+
+    def test_nested_blocks(self):
+        self.assertEqual(self.eval('{ 1; {3; 2;}}'), js.Completion(js.NORMAL, 2, js.EMPTY))
+
+    def test_block_with_empty(self):
+        self.assertEqual(self.eval('{7;;}'), js.Completion(js.NORMAL, 7, js.EMPTY))

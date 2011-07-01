@@ -1,6 +1,23 @@
 """Module containing basic JavaScript types and objects."""
+from collections import namedtuple
+
 
 UNDEFINED = object()
+EMPTY = object()
+NORMAL = object()
+BREAK = object()
+CONTINUE = object()
+RETURN = object()
+THROW = object()
+
+# Completion specification type as defined in [ECMA-262 8.9]
+Completion = namedtuple('Completion', 'type value target')
+
+EMPTY_COMPLETION = Completion(NORMAL, EMPTY, EMPTY)
+
+
+def is_abrupt(completion):
+    return completion.type is not NORMAL
 
 
 class Object(object):
@@ -31,7 +48,7 @@ class ExecutionContext(dict):
 
 
 class Reference(object):
-    """JavaScript reference type as defined in [ECMA-262 8.7]."""
+    """JavaScript reference specification type as defined in [ECMA-262 8.7]."""
     def __init__(self, name, base):
         self.name = name
         self.base = base
@@ -47,6 +64,7 @@ class Reference(object):
 
     def __repr__(self):
         return 'Reference(%r, %r)' % (self.name, self.base)
+
 
 
 def get_value(obj):

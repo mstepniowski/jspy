@@ -277,3 +277,48 @@ class MultiExpression(Node):
         self.left_expression.eval(context)
         return self.right_expression.eval(context)
 
+
+class Block(Node):
+    children = ['statements']
+
+    def eval(self, context):
+        result = js.EMPTY_COMPLETION
+        for statement in self.statements:
+            partial_result = statement.eval(context)
+            if js.is_abrupt(partial_result):
+                return partial_result
+            # Ignore empty statement values, as specified in [ECMA-262 12.1]
+            if partial_result.value is not js.EMPTY:
+                result = partial_result
+        return result
+
+
+class VariableDeclarationList(Node):
+    children = ['declarations']
+
+    def eval(self, context):
+        for declaration in self.declarations:
+            declaration.eval(context)
+        return js.EMPTY_COMPLETION
+
+
+class VariableDeclaration(Node):
+    arguments = ['name']
+    children = ['initialiser']
+
+    def eval(self, context):
+        return js.EMPTY_COMPLETION
+
+
+class EmptyStatement(Node):
+    def eval(self, context):
+        return js.EMPTY_COMPLETION
+
+
+class ExpressionStatement(Node):
+    children = ['expression']
+
+    def eval(self, context):
+        return js.Completion(js.NORMAL,
+                             js.get_value(self.expression.eval(context)),
+                             js.EMPTY)
