@@ -30,8 +30,8 @@ if __name__ == '__main__':
         print 'Context:'
         print '--------'
         print
-        
-        items = sorted(context.items())
+
+        items = sorted(context.env.items())
         
         for name, value in items:
             print '%s: %r' % (name, value)
