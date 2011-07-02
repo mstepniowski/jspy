@@ -1,12 +1,12 @@
 import os.path
 import sys
-import unittest2
 from StringIO import StringIO
+from jspy.compat import unittest
 from jspy.parser import Parser
 from jspy import ast, js, eval_file
 
 
-class TestExpression(unittest2.TestCase):
+class TestExpression(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.parser = Parser(start='expression')
@@ -129,7 +129,7 @@ class TestExpression(unittest2.TestCase):
         self.assertEqual(context['x'], js.Array([9, 10, 11]))
 
 
-class TestStatement(unittest2.TestCase):
+class TestStatement(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.parser = Parser(start='statement')
@@ -242,7 +242,7 @@ class TestStatement(unittest2.TestCase):
         self.assertEqual(context['y'], 2)
 
 
-class TestProgram(unittest2.TestCase):
+class TestProgram(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.parser = Parser(start='program')
@@ -335,7 +335,7 @@ class TestProgram(unittest2.TestCase):
         self.assertEqual(out.getvalue(), "0.0\n1.0\n2.0\n3.0\n4.0\n5.0\n6.0\n7.0\n8.0\n9.0\n")
 
 
-class TestFile(unittest2.TestCase):
+class TestFile(unittest.TestCase):
     def setUp(self):
         # Patch `sys.stdout` to catch program output
         self.out = StringIO()
