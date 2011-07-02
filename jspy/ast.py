@@ -318,7 +318,7 @@ class VariableDeclaration(Node):
         return js.Completion(js.NORMAL, ref.name, js.EMPTY)
 
     def get_declared_vars(self):
-        return set(self.identifier.name)
+        return set([self.identifier.name])
 
 
 class EmptyStatement(Node):
