@@ -70,6 +70,12 @@ class Array(Object):
         shown_items = [self.get(float(i)) for i in range(0, min(max_key, self.max_repr_len) + 1)]
         return 'Array(%r)' % shown_items
 
+    def __str__(self):
+        items = list(sorted((int(float(key)), value) for key, value in self.d.items()))
+        max_key = items[-1][0] if len(items) > 0 else -1
+        shown_items = [self.get(float(i)) for i in range(0, min(max_key, self.max_repr_len) + 1)]
+        return '[%s]' % ', '.join(str(item) for item in shown_items)
+
 
 class Function(object):
     """Function object as defined in [ECMA-262 15.3].
