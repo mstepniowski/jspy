@@ -1,7 +1,9 @@
-# Python and OSX garbage
+# Python, Emacs and OSX garbage
 *.pyc
 .DS_Store
+.#*
+build
 
 # PLY garbage
-parsetab.py
+_parser_*.py
 parser.out
