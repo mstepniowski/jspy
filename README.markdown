@@ -45,7 +45,7 @@ Implemented features
 
   * Expressions (excluding `delete`, `typeof`, `instanceof` and `in` operators)
   * Statements (excluding `for` and `for in` loops, `with`, `switch`, labels and exception handling)
-  * Functions (with nested execution scopes allowing for closures)z
+  * Functions (with nested execution scopes allowing for closures)
   * Basic object support (`Object` and `Array` literals, item assignment)
 
 
