@@ -24,15 +24,21 @@ You may need to have root rights, depending on your system configuration. After 
 Test suite
 ----------
 
-Test suite requires Python 2.7 or later. If you have an older version of Python, you will need to install [unittest2](http://pypi.python.org/pypi/unittest2) package.
+To run the test suite, you either need Python 2.7 or the [unittest2](http://pypi.python.org/pypi/unittest2) package installed.
 
-To run the tests:
+Python < 2.7:
 
 <pre>
     $ cd /main/jspy/folder
     $ unit2 discover
 </pre>
 
+Python >= 2.7:
+
+<pre>
+    $ cd /main/jspy/folder
+    $ python -m unittest discover
+</pre>
 
 Source code
 -----------
