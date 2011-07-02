@@ -1,5 +1,7 @@
 import os.path
+import sys
 import unittest2
+from StringIO import StringIO
 from jspy.parser import Parser
 from jspy import ast, js, eval_file
 
@@ -320,8 +322,29 @@ class TestProgram(unittest2.TestCase):
         self.assertEqual(context['f5'], 3)
         self.assertEqual(context['f7'], 8)
 
+    def test_console_object(self):
+        program = """var i = 0;
+                     while (i < 10) {
+                         console.log(i);
+                         i++;
+                     }
+                  """
+        out = StringIO()
+        context = js.ExecutionContext({'console': js.Console(out=out)})
+        self.assertEqual(self.eval(program, context), js.Completion(js.NORMAL, 9, js.EMPTY))
+        self.assertEqual(out.getvalue(), "0.0\n1.0\n2.0\n3.0\n4.0\n5.0\n6.0\n7.0\n8.0\n9.0\n")
+
 
 class TestFile(unittest2.TestCase):
+    def setUp(self):
+        # Patch `sys.stdout` to catch program output
+        self.out = StringIO()
+        self.old_stdout = sys.stdout
+        sys.stdout = self.out
+
+    def tearDown(self):
+        sys.stdout = self.old_stdout
+    
     def eval(self, file_name):
         package_directory = os.path.dirname(__file__)
         file_path = os.path.join(package_directory, 'test_files', file_name)
@@ -335,3 +358,10 @@ class TestFile(unittest2.TestCase):
                                    55.0, 89.0, 144.0, 233.0, 377.0,
                                    610.0, 987.0, 1597.0, 2584.0, 4181.0,
                                    6765.0]))
+
+    def test_primes(self):
+        self.eval('primes.js')
+        self.assertEqual(self.out.getvalue(),
+                         "2.0\n3.0\n5.0\n7.0\n11.0\n13.0\n17.0\n19.0\n23.0\n"
+                         "29.0\n31.0\n37.0\n41.0\n43.0\n47.0\n53.0\n59.0\n"
+                         "61.0\n67.0\n71.0\n")
