@@ -100,6 +100,32 @@ class TestExpression(unittest2.TestCase):
         self.assertEqual(self.eval('x /= 5 - 2', context), 5)
         self.assertEqual(context['x'], 5)
 
+    def test_property_access(self):
+        self.assertEqual(self.eval('{cheese: 7, ham: 3}.cheese'), 7)
+        self.assertEqual(self.eval("{cheese: 7, ham: 3}['ham']"), 3)
+
+    def test_object_set_property(self):
+        context = js.ExecutionContext({'x': js.Object({'cheese': 7, 'ham': 3})})
+        self.assertEqual(self.eval('x["cheese"] = 4', context), 4)
+        self.assertEqual(context['x']['cheese'], 4)
+
+    def test_object_set_new_property(self):
+        context = js.ExecutionContext({'x': js.Object({'cheese': 7, 'ham': 3})})
+        self.assertEqual(self.eval('x["spam"] = 2', context), 2)
+        self.assertEqual(context['x']['spam'], 2)
+
+    def test_array_literal(self):
+        self.assertEqual(self.eval('[9, 10, "ala ma kota"]'),
+                         js.Array([9, 10, 'ala ma kota']))
+
+    def test_empty_array_literal(self):
+        self.assertEqual(self.eval('[]'), js.Array([]))
+        
+    def test_array_set_index(self):
+        context = js.ExecutionContext({'x': js.Array([9, 10, 'ala ma kota'])})
+        self.assertEqual(self.eval('x[2] = 11', context), 11)
+        self.assertEqual(context['x'], js.Array([9, 10, 11]))
+
 
 class TestStatement(unittest2.TestCase):
     @classmethod
@@ -294,11 +320,6 @@ class TestProgram(unittest2.TestCase):
         self.assertEqual(context['f5'], 3)
         self.assertEqual(context['f7'], 8)
 
-    def test_variable_declaration(self):
-        context = js.ExecutionContext({})
-        self.assertEqual(self.eval('var x = 7;', context), js.EMPTY_COMPLETION)
-        self.assertEqual(context['x'], 7)
-
 
 class TestFile(unittest2.TestCase):
     def eval(self, file_name):
@@ -306,7 +327,11 @@ class TestFile(unittest2.TestCase):
         file_path = os.path.join(package_directory, 'test_files', file_name)
         return eval_file(file_path)
 
-    def test_basic_declaration(self):
-        result, context = self.eval('basic_declaration.js')
-        self.assertEqual(result, 35)
-
+    def test_fibgen(self):
+        result, context = self.eval('fibgen.js')
+        self.assertEqual(context['fibonacciNumbers'],
+                         js.Array([0.0, 1.0, 1.0, 2.0, 3.0,
+                                   5.0, 8.0, 13.0, 21.0, 34.0,
+                                   55.0, 89.0, 144.0, 233.0, 377.0,
+                                   610.0, 987.0, 1597.0, 2584.0, 4181.0,
+                                   6765.0]))

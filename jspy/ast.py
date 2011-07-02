@@ -108,15 +108,17 @@ class ObjectLiteral(Node):
     children = ['items']
 
     def eval(self, context):
-        return js.Object(items=[js.get_value(item.eval(context)) for item in self.items])
+        items = dict((name, js.get_value(e.eval(context))) for name, e in self.items.items())
+        return js.Object(items=items)
 
 
-class PropertyAccessor(Node):
+class PropertyAccess(Node):
     children = ['obj', 'key']
 
     def eval(self, context):
-        base = js.get_value(self.obj.eval(context))
-        return base[js.get_value(self.key.eval(context))]
+        base_value = js.get_value(self.obj.eval(context))
+        property_name_value = js.get_value(self.key.eval(context))
+        return js.Reference(name=property_name_value, base=base_value)
 
 
 class Constructor(Node):
@@ -415,6 +417,8 @@ class ReturnStatement(Node):
 
 class DebuggerStatement(Node):
     def eval(self, context):
+        # According to [ECMA-262 12.15] this statement should
+        # have no observable effect when run
         return js.EMPTY_COMPLETION
 
 

@@ -45,16 +45,18 @@ Implemented features
 
   * Expressions (excluding `delete`, `typeof`, `instanceof` and `in` operators)
   * Statements (excluding `for` and `for in` loops, `with`, `switch`, labels and exception handling)
-  * Functions (with nested execution scopes allowing for closures)
+  * Functions (with nested execution scopes allowing for closures)z
+  * Basic object support (`Object` and `Array` literals, item assignment)
 
- 
+
 Todo (in order of priorities)
 -----------------------------
 
   * `for` and `for in` loops
   * `switch` statement
-  * Objects (including an implementation of `Array`)
+  * Full object support (including an `Array` implementation)
   * `delete`, `typeof`, `instanceof` and `in` operators
+  * Function statements (why is that in standard?)
   * Prototypal inheritance
   * Exception handling
   * Strict mode (should we run in strict mode by default?)

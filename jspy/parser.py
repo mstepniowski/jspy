@@ -249,7 +249,7 @@ class Parser(object):
         p[0] = ast.Literal(value=p[1])
 
     def p_array_literal(self, p):
-        """array_literal : LBRACKET element_list RBRACKET"""
+        """array_literal : LBRACKET element_list_opt RBRACKET"""
         p[0] = ast.ArrayLiteral(items=p[2])
 
     def p_element_list(self, p):
@@ -260,10 +260,21 @@ class Parser(object):
         else:
             p[0] = p[1] + [p[3]]
 
+    def p_element_list_opt(self, p):
+        """element_list_opt : element_list"""
+        p[0] = p[1]
+
+    def p_element_list_opt_empty(self, p):
+        """element_list_opt : empty"""
+        p[0] = []
+    
     def p_object_literal(self, p):
         """object_literal : LBRACE RBRACE
                           | LBRACE property_name_and_value_list RBRACE"""
-        p[0] = ast.ObjectLiteral(items=p[2])
+        if len(p) == 3:
+            p[0] = ast.ObjectLiteral(items=[])
+        else:
+            p[0] = ast.ObjectLiteral(items=p[2])
 
     def p_property_name_and_value_list(self, p):
         """property_name_and_value_list : property_assignment
@@ -285,7 +296,7 @@ class Parser(object):
                          | STRING
                          | NUMBER"""
         p[0] = p[1]
-
+    
     #
     # [ECMA-262 11.2] Left-Hand-Side Expressions
     #
@@ -297,12 +308,12 @@ class Parser(object):
         p[0] = p[1]
         
     def p_property_access_expression(self, p):
-        """property_access_expression : member_expression LBRACE expression RBRACE
+        """property_access_expression : member_expression LBRACKET expression RBRACKET
                                       | member_expression PERIOD ID"""
         if len(p) == 5:
-            p[0] = ast.PropertyAccesor(obj=p[1], key=p[3])
+            p[0] = ast.PropertyAccess(obj=p[1], key=p[3])
         else:
-            p[0] = ast.PropertyAccesor(obj=p[1], key=ast.Literal(value=p[3]))
+            p[0] = ast.PropertyAccess(obj=p[1], key=ast.Literal(value=p[3]))
     
     def p_constructor_expression(self, p):
         """constructor_expression : NEW member_expression arguments"""

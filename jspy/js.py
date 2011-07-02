@@ -21,13 +21,53 @@ def is_abrupt(completion):
 
 
 class Object(object):
-    def __init__(self, items):
-        self.items = items
+    """JavaScript Object as defined in [ECMA-262 8.6]."""
+    def __init__(self, items=None):
+        if items is None:
+            items = {}
+        self.d = items
+
+    def __getitem__(self, name):
+        return self.d[str(name)]
+
+    def __setitem__(self, name, value):
+        self.d[str(name)] = value
+
+    def get(self, name):
+        try:
+            return self.d[str(name)]
+        except KeyError:
+            return UNDEFINED
+    
+    def get_binding_value(self, name):
+        return self[name]
+
+    def set_mutable_binding(self, name, value):
+        self[name] = value
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.d)
+
+    def __eq__(self, other):
+        return self.d == other.d
 
 
-class Array(object):
-    def __init__(self, items):
-        self.items = items
+class Array(Object):
+    """JavaScript Array as defined in [ECMA-262 15.4]."""
+    max_repr_len = 23
+    
+    def __init__(self, items=None):
+        if items is None:
+            items = []
+        super(Array, self).__init__()
+        for i, item in enumerate(items):
+            self[float(i)] = item
+
+    def __repr__(self):
+        items = list(sorted((int(float(key)), value) for key, value in self.d.items()))
+        max_key = items[-1][0] if len(items) > 0 else -1
+        shown_items = [self.get(float(i)) for i in range(0, min(max_key, self.max_repr_len) + 1)]
+        return 'Array(%r)' % shown_items
 
 
 class Function(object):
@@ -128,6 +168,16 @@ class Reference(object):
     def is_property(self):
         return isinstance(self.base, Object) or self.has_primitive_base()
 
+    def get_value(self):
+        if self.is_unresolvable():
+            raise ReferenceError("%r is unresolvable" % self)
+        return self.base.get_binding_value(self.name)
+
+    def put_value(self, value):
+        if self.is_unresolvable():
+            raise ReferenceError("%r is unresolvable" % value)
+        self.base.set_mutable_binding(self.name, value)
+    
     def __repr__(self):
         return 'Reference(%r, %r)' % (self.name, self.base)
 
@@ -136,29 +186,17 @@ def get_value(obj):
     """Returns a value of `obj`, resolving a reference if needed.
     
     See [ECMA-262 8.7.1] for details."""
-    if not isinstance(obj, Reference):
-        return obj
-    if obj.is_unresolvable():
-        raise ReferenceError("%r is unresolvable" % obj)
-    if obj.is_property():
-        raise NotImplementedError("Object references are not supported: %r" % obj)
+    if isinstance(obj, Reference):
+        return obj.get_value()
     else:
-        # `obj.base` must be an `ExecutionContext` at this point
-        return obj.base.get_binding_value(obj.name)
+        return obj
 
 
 def put_value(obj, value):
     """Sets the value of `obj` reference to `value`.
 
     See [ECMA-262 8.7.2] for details."""
-    if not isinstance(obj, Reference):
-        raise ReferenceError("Can't put a value of non-reference object %r" % obj)
-    if obj.is_unresolvable():
-        raise ReferenceError("%r is unresolvable" % obj)
-    if obj.is_property():
-        # TODO
-        raise NotImplementedError("Object references are not supported: %r" % obj)
+    if isinstance(obj, Reference):
+        obj.put_value(value)
     else:
-        # `obj.base` must be an `ExecutionContext` at this point
-        obj.base.set_mutable_binding(obj.name, value)
-
+        raise ReferenceError("Can't put a value of non-reference object %r" % obj)
