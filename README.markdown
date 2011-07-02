@@ -47,6 +47,7 @@ Implemented features
   * Statements (excluding `for` and `for in` loops, `with`, `switch`, labels and exception handling)
   * Functions (with nested execution scopes allowing for closures)
   * Basic object support (`Object` and `Array` literals, item assignment)
+  * `console.log`, same as in [Node.js](http://nodejs.org/) and [Firebug](http://getfirebug.com/)
 
 
 Todo (in order of priorities)
@@ -56,10 +57,13 @@ Todo (in order of priorities)
   * `switch` statement
   * Full object support (including an `Array` implementation)
   * `delete`, `typeof`, `instanceof` and `in` operators
-  * Function statements (why is that in standard?)
+  * Function statements
+  * Sane error messages
   * Prototypal inheritance
   * Exception handling
   * Strict mode (should we run in strict mode by default?)
+  * Proper value behaviour (right now the behaviour of `Number` and `String` objects is Python-like and can sometimes be different than in JavaScript)
+  * Automatic semicolon insertion (as defined in section 7.9 of ECMA-262)
   * Labels for `break` and `continue` statements
-  * `with` statement (it's evil!)
+  * `with` statement (it's [evil](http://yuiblog.com/blog/2006/04/11/with-statement-considered-harmful/)!)
 
