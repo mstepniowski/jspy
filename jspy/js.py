@@ -21,6 +21,13 @@ def is_abrupt(completion):
     return completion.type is not NORMAL
 
 
+def to_python(value):
+    if isinstance(value, (Object, Function, NativeFunction)):
+        return value.to_python()
+    else:
+        return value
+
+
 class Object(object):
     """JavaScript Object as defined in [ECMA-262 8.6]."""
     def __init__(self, items=None):
@@ -39,7 +46,7 @@ class Object(object):
             return self.d[str(name)]
         except KeyError:
             return UNDEFINED
-    
+
     def get_binding_value(self, name):
         return self[name]
 
@@ -52,7 +59,13 @@ class Object(object):
     def __eq__(self, other):
         return self.d == other.d
 
-    
+    def to_python(self):
+        result = {}
+        for key, value in self.d.items():
+            result[key] = to_python(value)
+        return result
+
+
 class Array(Object):
     """JavaScript Array as defined in [ECMA-262 15.4]."""
     max_repr_len = 23
@@ -75,6 +88,9 @@ class Array(Object):
         max_key = items[-1][0] if len(items) > 0 else -1
         shown_items = [self.get(float(i)) for i in range(0, min(max_key, self.max_repr_len) + 1)]
         return '[%s]' % ', '.join(str(item) for item in shown_items)
+
+    def to_python(self):
+        return [to_python(value) for key, value in sorted(self.d.items(), key=lambda x: x[0])]
 
 
 class Function(object):
@@ -117,6 +133,9 @@ class Function(object):
                                                                self.body,
                                                                self.scope)
 
+    def to_python(self):
+        raise ValueError('Can\'t convert JavaScript function to Python')
+
 
 class NativeFunction(object):
     """Function implemented in Python, callable from JavaScript code."""
@@ -128,6 +147,9 @@ class NativeFunction(object):
 
     def __repr__(self):
         return 'NativeFunction(f=%r)' % (self.f)
+
+    def to_python(self):
+        return self.f
 
 
 class Console(Object):
