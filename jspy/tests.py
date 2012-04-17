@@ -122,11 +122,20 @@ class TestExpression(unittest.TestCase):
 
     def test_empty_array_literal(self):
         self.assertEqual(self.eval('[]'), js.Array([]))
-        
+    
     def test_array_set_index(self):
         context = js.ExecutionContext({'x': js.Array([9, 10, 'ala ma kota'])})
         self.assertEqual(self.eval('x[2] = 11', context), 11)
         self.assertEqual(context['x'], js.Array([9, 10, 11]))
+
+    def test_array_elision(self):
+        self.assertEqual(self.eval('[,]'), js.Array([js.UNDEFINED]))
+        self.assertEqual(self.eval('[,,]'), js.Array([js.UNDEFINED, js.UNDEFINED]))
+        self.assertEqual(self.eval('[,,,]'), js.Array([js.UNDEFINED, js.UNDEFINED, js.UNDEFINED]))
+        self.assertEqual(self.eval('[1, 2,]'), js.Array([1, 2]))
+        self.assertEqual(self.eval('[1, 2,,]'), js.Array([1, 2, js.UNDEFINED]))
+        self.assertEqual(self.eval('[1,,2]'), js.Array([1, js.UNDEFINED, 2]))
+        self.assertEqual(self.eval('[1,,,2]'), js.Array([1, js.UNDEFINED, js.UNDEFINED, 2]))
 
 
 class TestStatement(unittest.TestCase):
@@ -380,3 +389,19 @@ class TestFile(unittest.TestCase):
 [1.0, 8.0, 28.0, 56.0, 70.0, 56.0, 28.0, 8.0, 1.0]
 [1.0, 9.0, 36.0, 84.0, 126.0, 126.0, 84.0, 36.0, 9.0, 1.0]
 """)
+
+    def test_object_literal(self):
+        result, context = self.eval('object_literal.js')
+        self.assertEqual(result, js.Object({u'season': js.Object({u'episode': js.Array([js.Object({
+                                            u'available': u'true',
+                                            u'episodenumber': u'402',
+                                            u'description': u'...',
+                                            u'tags': u'Tooth Fairy|Cartman|Tits|Kyle|Stan',
+                                            u'url': u'http://www.southparkstudios.com/full-episodes/s04e02-the-tooth-fairy-tats',
+                                            u'title': u'The Tooth Fairy Tats',
+                                            u'when': u'04.05.2000',
+                                            u'thumbnail_190': u'http://example.com/episode_thumbnails/s04e02_480.jpg?width=190',
+                                            u'id': u'103570',
+                                            u'airdate': u'04.05.2000',
+                                            u'thumbnail_larger': u'http://example.com/episode_thumbnails/s04e02_480.jpg?width=63',
+                                            u'thumbnail': u'http://example.com/episode_thumbnails/s04e02_480.jpg?width=55'})])})}))

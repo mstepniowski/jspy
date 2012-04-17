@@ -100,8 +100,14 @@ class ArrayLiteral(Node):
     children = ['items']
 
     def eval(self, context):
-        # TODO: Ellision
-        return js.Array(items=[js.get_value(item.eval(context)) for item in self.items])
+        items = [self.get_item_value(item, context) for item in self.items]
+        # Elision: remove last item if it's undefined
+        if len(items) > 0  and items[-1] is js.UNDEFINED:
+            items.pop()
+        return js.Array(items=items)
+
+    def get_item_value(self, item, context):
+        return js.get_value(item.eval(context)) if item is not None else js.UNDEFINED
 
 
 class ObjectLiteral(Node):

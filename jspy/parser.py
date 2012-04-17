@@ -251,15 +251,15 @@ class Parser(object):
     def p_array_literal(self, p):
         """array_literal : LBRACKET element_list_opt RBRACKET"""
         p[0] = ast.ArrayLiteral(items=p[2])
-
+        
     def p_element_list(self, p):
-        """element_list : element_list COMMA assignment_expression
-                        | assignment_expression"""
+        """element_list : element_list COMMA assignment_expression_opt
+                        | assignment_expression_opt"""
         if len(p) == 2:
             p[0] = [p[1]]
         else:
             p[0] = p[1] + [p[3]]
-
+    
     def p_element_list_opt(self, p):
         """element_list_opt : element_list"""
         p[0] = p[1]
@@ -267,7 +267,7 @@ class Parser(object):
     def p_element_list_opt_empty(self, p):
         """element_list_opt : empty"""
         p[0] = []
-    
+
     def p_object_literal(self, p):
         """object_literal : LBRACE RBRACE
                           | LBRACE property_name_and_value_list RBRACE"""
@@ -520,6 +520,14 @@ class Parser(object):
     #
     # [ECMA-262 11.13] Assignment Operators
     #
+    def p_assignment_expression_opt(self, p):
+        """assignment_expression_opt : assignment_expression"""
+        p[0] = p[1]
+
+    def p_assignment_expression_opt_empty(self, p):
+        """assignment_expression_opt : empty"""
+        p[0] = None
+    
     def p_assignment_expression(self, p):
         """assignment_expression : conditional_expression
                                  | left_hand_side_expression assignment_operator assignment_expression"""
