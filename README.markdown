@@ -73,3 +73,8 @@ Todo (in order of priorities)
   * Labels for `break` and `continue` statements
   * `with` statement (it's [evil](http://yuiblog.com/blog/2006/04/11/with-statement-considered-harmful/)!)
 
+
+License
+-------
+
+The code is released open-source under the [MIT license](http://www.opensource.org/licenses/MIT). See `license.txt` file for details.
